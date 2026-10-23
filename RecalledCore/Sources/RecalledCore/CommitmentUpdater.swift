@@ -15,8 +15,8 @@ public enum CommitmentUpdater {
         var updated = commitment
         // Missing date text is not a request to erase an existing schedule.
         if !item.dueText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            let resolution = DateResolver.resolve(dueText: item.dueText, sentAt: sentAt, timeZone: timeZone)
-            switch resolution {
+            let detailed = DateResolver.resolveDetailed(dueText: item.dueText, sentAt: sentAt, timeZone: timeZone)
+            switch detailed.resolution {
             case .exact(let interval):
                 updated.dueStart = interval.start
                 updated.dueEnd = interval.end
@@ -29,7 +29,7 @@ public enum CommitmentUpdater {
                 return .review
             }
             updated.dueText = item.dueText
-            updated.timezone = timeZone.identifier
+            updated.timezone = detailed.sourceTimeZone?.identifier ?? timeZone.identifier
         }
         updated.title = item.title
         updated.actor = item.actor

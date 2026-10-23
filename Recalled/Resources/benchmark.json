@@ -28,7 +28,7 @@
   },
   {
     "id": "ported-02",
-    "name": "Timed meeting - Review: timezone suffix unsupported by DateResolver",
+    "name": "Timed meeting",
     "style": "email",
     "origin": "ported",
     "sender": "Alex",
@@ -48,7 +48,7 @@
           "dueTime": "10:00",
           "evidence": "Our project meeting is confirmed for 14 October 2026 at 10:00 AM Australia/Sydney.",
           "updatesRef": "",
-          "requiresReview": true
+          "requiresReview": false
         }
       ]
     }
@@ -105,7 +105,7 @@
   },
   {
     "id": "ported-05",
-    "name": "Cancelled meeting - Review: timezone suffix unsupported by DateResolver",
+    "name": "Cancelled meeting",
     "style": "email",
     "origin": "ported",
     "sender": "Alex",
@@ -133,14 +133,14 @@
           "dueTime": "10:00",
           "evidence": "The project meeting on 14 October 2026 at 10:00 AM Australia/Sydney is cancelled.",
           "updatesRef": "t1",
-          "requiresReview": true
+          "requiresReview": false
         }
       ]
     }
   },
   {
     "id": "ported-06",
-    "name": "Separate report and meeting - Review: meeting timezone suffix unsupported by DateResolver",
+    "name": "Separate report and meeting",
     "style": "email",
     "origin": "ported",
     "sender": "Alex",
@@ -171,7 +171,7 @@
           "dueTime": "10:00",
           "evidence": "Also attend the review meeting on 14 October 2026 at 10:00 AM Australia/Sydney.",
           "updatesRef": "",
-          "requiresReview": true
+          "requiresReview": false
         }
       ]
     }
@@ -309,7 +309,7 @@
   },
   {
     "id": "ported-13",
-    "name": "Demo proposal - Review: timezone suffix unsupported by DateResolver",
+    "name": "Demo proposal",
     "style": "email",
     "origin": "ported",
     "sender": "Alex",
@@ -329,14 +329,14 @@
           "dueTime": "16:30",
           "evidence": "Let's run through the product demo on Friday 16 October, 16:30–17:00 Sydney time.",
           "updatesRef": "",
-          "requiresReview": true
+          "requiresReview": false
         }
       ]
     }
   },
   {
     "id": "ported-14",
-    "name": "Pitch deck - Review: timezone suffix unsupported by DateResolver",
+    "name": "Pitch deck",
     "style": "email",
     "origin": "ported",
     "sender": "Alex",
@@ -356,14 +356,14 @@
           "dueTime": "17:00",
           "evidence": "Please send the updated pitch deck by Tuesday 20 October at 17:00 Sydney time.",
           "updatesRef": "",
-          "requiresReview": true
+          "requiresReview": false
         }
       ]
     }
   },
   {
     "id": "ported-15",
-    "name": "Feedback call - Review: timezone suffix unsupported by DateResolver",
+    "name": "Feedback call",
     "style": "email",
     "origin": "ported",
     "sender": "Alex",
@@ -383,14 +383,14 @@
           "dueTime": "12:00",
           "evidence": "Our feedback call is Wednesday 21 October, 12:00–12:30 Sydney time.",
           "updatesRef": "",
-          "requiresReview": true
+          "requiresReview": false
         }
       ]
     }
   },
   {
     "id": "ported-17",
-    "name": "My rollout commitment - Review: timezone suffix unsupported by DateResolver",
+    "name": "My rollout commitment",
     "style": "chat",
     "origin": "ported",
     "sender": "me",
@@ -410,7 +410,7 @@
           "dueTime": "14:00",
           "evidence": "I will share the staged rollout and rollback plan by Thursday 29 October at 14:00 Sydney time.",
           "updatesRef": "",
-          "requiresReview": true
+          "requiresReview": false
         }
       ]
     }

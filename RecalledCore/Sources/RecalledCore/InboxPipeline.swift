@@ -70,8 +70,12 @@ public enum InboxPipeline {
             var start: Date?
             var end: Date?
             var kind = item.kind
+            var sourceTimeZone: TimeZone?
             if !item.dueText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                switch DateResolver.resolve(dueText: item.dueText, sentAt: message.sentAt, timeZone: timeZone) {
+                let detailed = DateResolver.resolveDetailed(
+                    dueText: item.dueText, sentAt: message.sentAt, timeZone: timeZone)
+                sourceTimeZone = detailed.sourceTimeZone
+                switch detailed.resolution {
                 case .exact(let interval):
                     start = interval.start
                     end = interval.end
@@ -100,7 +104,8 @@ public enum InboxPipeline {
                 }
                 value = Commitment(title: item.title, kind: kind,
                     status: item.tentative ? .tentative : .confirmed, actor: item.actor,
-                    dueText: item.dueText, dueStart: start, dueEnd: end, timezone: timeZone.identifier)
+                    dueText: item.dueText, dueStart: start, dueEnd: end,
+                    timezone: sourceTimeZone?.identifier ?? timeZone.identifier)
             case .updated, .rescheduled, .cancelled, .completed:
                 guard case .match(let id) = match,
                       let old = current.first(where: { $0.id == id }) else {
@@ -141,7 +146,7 @@ public enum InboxPipeline {
                 isNew = true
                 value = Commitment(title: item.title, kind: kind, status: .tentative,
                     actor: item.actor, dueText: item.dueText, dueStart: start,
-                    dueEnd: end, timezone: timeZone.identifier)
+                    dueEnd: end, timezone: sourceTimeZone?.identifier ?? timeZone.identifier)
             }
             if item.tentative { value.status = .tentative }
             if isNew {

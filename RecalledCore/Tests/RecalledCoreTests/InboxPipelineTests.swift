@@ -365,3 +365,67 @@ private actor RecordingExtractor: CommitmentExtractor {
     #expect(result.reviewItems.first?.reason == "tentative")
     #expect(result.reviewItems.first?.sourceMessageId == "shared-1")
 }
+
+@Test(arguments: [ExtractionResult.Change.new, .noChange, .updated, .rescheduled])
+func pipelineStoresSourceZoneForNewTentativeAndRescheduledItems(change: ExtractionResult.Change) async throws {
+    for (due, identifier, utc) in [
+        ("Sat 3pm pErTh TIME", "Australia/Perth", "2026-10-24T07:00:00Z"),
+        ("Sat 6pm AEDT", "GMT+1100", "2026-10-24T07:00:00Z"),
+        ("Sat 10am Europe/London", "Europe/London", "2026-10-24T09:00:00Z"),
+        ("Sat 6pm ACDT", "GMT+1030", "2026-10-24T07:30:00Z"),
+        ("Sat 7pm", "Australia/Sydney", "2026-10-24T08:00:00Z")
+    ] {
+        let isUpdate = change == .updated || change == .rescheduled
+        let tentative = change == .noChange
+        let text = "Please arrange dinner \(due)."
+        let old = originalDinner()
+        let result = await run(input(text),
+            item: extractedItem(evidence: text, due: due, tentative: tentative, ref: isUpdate ? "t1" : ""),
+            change: change, existing: isUpdate ? [old] : [])
+        let value = try #require(isUpdate ? result.updatedCommitments.first : result.newCommitments.first)
+        #expect(value.timezone == identifier)
+        #expect(value.dueStart == ISO8601DateFormatter().date(from: utc))
+        #expect(value.dueEnd == value.dueStart?.addingTimeInterval(3_600))
+        #expect(value.status == (tentative ? .tentative : .confirmed))
+        #expect(result.reviewItems.count == (tentative ? 1 : 0))
+        if isUpdate {
+            #expect(value.id == old.id)
+            #expect(value.version == old.version + 1)
+            #expect(value.calendarEventId == old.calendarEventId)
+        }
+    }
+}
+
+@Test func pipelineZonedDateOnlyStoresSourceZoneWithoutShiftingDeadline() async throws {
+    let due = "25 October 2026 Perth time"
+    let text = "Please submit the report by \(due)."
+    let result = await run(input(text), item: extractedItem(evidence: text, due: due))
+    let value = try #require(result.newCommitments.first)
+    #expect(value.timezone == "Australia/Perth")
+    #expect(value.kind == .deadline)
+    #expect(value.dueStart == ISO8601DateFormatter().date(from: "2026-10-24T13:00:00Z"))
+    #expect(value.dueEnd == nil)
+    #expect(result.reviewItems.isEmpty)
+}
+
+@Test func pipelineUnknownZoneRequiresReviewWithoutMutation() async {
+    let text = "Please move dinner to Sat 9am PST."
+    let result = await run(input(text), item: extractedItem(evidence: text, due: "Sat 9am PST", ref: "t1"),
+                           change: .rescheduled, existing: [originalDinner()])
+    #expect(result.newCommitments.isEmpty)
+    #expect(result.updatedCommitments.isEmpty)
+    #expect(result.reviewItems.first?.reason.contains("ambiguous") == true)
+}
+
+@Test func pipelineDatelessUpdatePreservesExistingSourceZone() async throws {
+    var old = originalDinner()
+    old.timezone = "GMT+1100"
+    let text = "Please rename dinner to team dinner."
+    let result = await run(input(text), item: extractedItem(evidence: text, due: "", ref: "t1"),
+                           change: .updated, existing: [old])
+    let value = try #require(result.updatedCommitments.first)
+    #expect(value.timezone == old.timezone)
+    #expect(value.dueStart == old.dueStart)
+    #expect(value.dueEnd == old.dueEnd)
+    #expect(result.reviewItems.isEmpty)
+}
