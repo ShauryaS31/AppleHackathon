@@ -86,6 +86,7 @@ private struct ReviewResolutionView: View {
     @State private var end = Date.now
     @State private var includesEnd = false
     @State private var dateOnly = false
+    @State private var noDate = false
     @State private var errorMessage: String?
 
     private enum Mode { case actions, edit, create, merge }
@@ -99,8 +100,10 @@ private struct ReviewResolutionView: View {
         commitments.filter { $0.isOpenForReview && $0.id != candidate?.id }
     }
     private var schedule: ReviewSchedule {
-        ReviewSchedule(start: dateOnly ? Calendar.current.startOfDay(for: start) : start,
-            end: dateOnly || !includesEnd ? nil : end, timezone: TimeZone.current.identifier)
+        let selectedStart = dateOnly ? Calendar.current.startOfDay(for: start) : start
+        return ReviewSchedule(start: selectedStart,
+            end: dateOnly || !includesEnd ? nil : end, timezone: TimeZone.current.identifier,
+            dueText: selectedStart.formatted(date: .abbreviated, time: .shortened))
     }
 
     var body: some View {
@@ -154,16 +157,16 @@ private struct ReviewResolutionView: View {
                 if let date = candidate.dueStart {
                     LabeledContent("Current date", value: date.formatted(date: .abbreviated, time: .shortened))
                 } else {
-                    Text("Choose a date and time before confirming.").foregroundStyle(.secondary)
+                    Text("No date selected").foregroundStyle(.secondary)
                 }
                 Button("Confirm") { resolve(.confirm) }
-                    .disabled(candidate.dueStart == nil)
                 Button("Edit date/time") {
                     kind = candidate.kind
                     start = candidate.dueStart ?? .now
                     end = candidate.dueEnd ?? start
                     includesEnd = candidate.dueEnd != nil
                     dateOnly = candidate.kind == .deadline && candidate.dueEnd == nil
+                    noDate = false
                     mode = .edit
                 }
                 Button("Mark as same as existing item") { mode = .merge }
@@ -175,6 +178,7 @@ private struct ReviewResolutionView: View {
                     end = start
                     includesEnd = false
                     dateOnly = false
+                    noDate = true
                     mode = .create
                 }
             }
@@ -195,35 +199,44 @@ private struct ReviewResolutionView: View {
                     dateOnly = value == .deadline
                     if dateOnly { includesEnd = false }
                 }
+                Toggle("No date", isOn: $noDate)
             }
-            if kind == .deadline {
-                Toggle("Date only", isOn: $dateOnly)
-                    .onChange(of: dateOnly) { _, value in
-                        // Today uses a deadline with no end as a date-only item.
-                        includesEnd = !value
-                    }
+            if !noDate {
+                scheduleFields
             }
-            DatePicker(dateOnly ? "Due date" : "Start", selection: $start,
-                displayedComponents: dateOnly ? [.date] : [.date, .hourAndMinute])
-            if !dateOnly {
-                Toggle("Include end time", isOn: $includesEnd)
-                    .disabled(kind == .deadline)
-                if includesEnd {
-                    DatePicker("End", selection: $end, in: start...,
-                        displayedComponents: [.date, .hourAndMinute])
-                }
-            }
-            Text("Time zone: \(TimeZone.current.identifier)").font(.caption)
             Button(mode == .create ? "Create item" : "Save and confirm") {
-                if mode == .create { resolve(.create(title: title, kind: kind, schedule: schedule)) }
-                else { resolve(.edit(schedule)) }
+                if mode == .create {
+                    resolve(.create(id: UUID(), title: title, kind: kind, schedule: noDate ? nil : schedule))
+                } else { resolve(.edit(schedule)) }
             }
             .disabled((mode == .create && title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                || (!dateOnly && includesEnd && end <= start))
+                || (!noDate && !dateOnly && includesEnd && end <= start))
             Button("Back", role: .cancel) { mode = .actions }
         } header: {
             Text(mode == .create ? "New item" : "Choose date and time")
         }
+    }
+
+    @ViewBuilder
+    private var scheduleFields: some View {
+        if kind == .deadline {
+            Toggle("Date only", isOn: $dateOnly)
+                .onChange(of: dateOnly) { _, value in
+                    // Today uses a deadline with no end as a date-only item.
+                    includesEnd = !value
+                }
+        }
+        DatePicker(dateOnly ? "Due date" : "Start", selection: $start,
+            displayedComponents: dateOnly ? [.date] : [.date, .hourAndMinute])
+        if !dateOnly {
+            Toggle("Include end time", isOn: $includesEnd)
+                .disabled(kind == .deadline)
+            if includesEnd {
+                DatePicker("End", selection: $end, in: start...,
+                    displayedComponents: [.date, .hourAndMinute])
+            }
+        }
+        Text("Time zone: \(TimeZone.current.identifier)").font(.caption)
     }
 
     private var mergeSection: some View {
