@@ -83,6 +83,59 @@ final class AppStore {
         #endif
     }
 
+    /// Pass Core commitments and detached evidence/review rows. Reuse each row's
+    /// UUID on retries or edits (Core Evidence and ReviewItem have no row ID).
+    /// All inserts and updates commit together; failures roll the batch back.
+    func ingest(commitments: [Commitment], evidence: [StoredEvidence],
+                reviewItems: [StoredReviewItem]) throws {
+        let context = container.mainContext
+        do {
+            for value in commitments {
+                let id = value.id
+                let descriptor = FetchDescriptor<StoredCommitment>(
+                    predicate: #Predicate { $0.id == id })
+                if let row = try context.fetch(descriptor).first {
+                    row.title = value.title
+                    row.kind = value.kind
+                    row.status = value.status
+                    row.actor = value.actor
+                    row.dueText = value.dueText
+                    row.dueStart = value.dueStart
+                    row.dueEnd = value.dueEnd
+                    row.timezone = value.timezone
+                    row.version = value.version
+                    row.calendarEventId = value.calendarEventId
+                } else {
+                    context.insert(StoredCommitment(value))
+                }
+            }
+            for value in evidence {
+                let id = value.id
+                let descriptor = FetchDescriptor<StoredEvidence>(
+                    predicate: #Predicate { $0.id == id })
+                if let row = try context.fetch(descriptor).first {
+                    row.update(from: value)
+                } else {
+                    context.insert(value)
+                }
+            }
+            for value in reviewItems {
+                let id = value.id
+                let descriptor = FetchDescriptor<StoredReviewItem>(
+                    predicate: #Predicate { $0.id == id })
+                if let row = try context.fetch(descriptor).first {
+                    row.update(from: value)
+                } else {
+                    context.insert(value)
+                }
+            }
+            try context.save()
+        } catch {
+            context.rollback()
+            throw error
+        }
+    }
+
     func resetDemo(now: Date = .now) throws {
         let context = container.mainContext
         do {

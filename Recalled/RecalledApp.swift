@@ -3,6 +3,7 @@ import SwiftData
 
 @main
 struct RecalledApp: App {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var store: AppStore?
     @State private var startupError: String?
 
@@ -25,14 +26,20 @@ struct RecalledApp: App {
                 } description: {
                     Text(startupError ?? "Please try again.")
                 } actions: {
-                    Button("Try again") {
-                        do {
-                            store = try AppStore()
-                            startupError = nil
-                        } catch { startupError = error.localizedDescription }
-                    }
+                    Button("Try again") { retryOpeningStore() }
                 }
             }
         }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { retryOpeningStore() }
+        }
+    }
+
+    private func retryOpeningStore() {
+        guard store == nil else { return }
+        do {
+            store = try AppStore()
+            startupError = nil
+        } catch { startupError = error.localizedDescription }
     }
 }

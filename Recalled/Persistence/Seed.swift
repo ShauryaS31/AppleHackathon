@@ -68,12 +68,13 @@ enum Seed {
                 Evidence(commitmentId: commitment.id, sourceMessageId: messageID,
                          excerpt: item.excerpt, source: .seed, capturedAt: now),
                 sender: item.sender, subject: item.title, sentAt: now,
-                contextBefore: "Quick update: ", contextAfter: " Let me know what works."
+                body: "Quick update: " + item.excerpt + " Let me know what works."
             ))
             if commitment.status == .needsReview,
                let review = ReviewItem(commitmentId: commitment.id, sourceMessageId: messageID,
                                        reason: "Choose a date and time for lunch.") {
-                context.insert(StoredReviewItem(review))
+                context.insert(StoredReviewItem(review, sender: item.sender,
+                    excerpt: item.excerpt, createdAt: now))
             }
         }
         // Demo loading never fabricates outbound requests or action receipts.

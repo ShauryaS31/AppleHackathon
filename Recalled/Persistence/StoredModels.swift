@@ -7,8 +7,16 @@ import SwiftData
 final class StoredCommitment {
     @Attribute(.unique) var id: UUID
     var title: String
-    var kind: Commitment.Kind
-    var status: Commitment.Status
+    var kindRaw: String
+    var statusRaw: String
+    var kind: Commitment.Kind {
+        get { Commitment.Kind(rawValue: kindRaw) ?? .commitment }
+        set { kindRaw = newValue.rawValue }
+    }
+    var status: Commitment.Status {
+        get { Commitment.Status(rawValue: statusRaw) ?? .needsReview }
+        set { statusRaw = newValue.rawValue }
+    }
     var actor: String
     var dueText: String
     var dueStart: Date?
@@ -20,8 +28,8 @@ final class StoredCommitment {
     init(_ value: Commitment) {
         id = value.id
         title = value.title
-        kind = value.kind
-        status = value.status
+        kindRaw = value.kind.rawValue
+        statusRaw = value.status.rawValue
         actor = value.actor
         dueText = value.dueText
         dueStart = value.dueStart
@@ -50,12 +58,12 @@ final class StoredEvidence {
     var subject: String
     var sentAt: Date
     // Bounded neighboring excerpts provide context without retaining the body.
-    var contextBefore: String
-    var contextAfter: String
+    private(set) var contextBefore: String
+    private(set) var contextAfter: String
 
-    init(_ value: Evidence, sender: String, subject: String, sentAt: Date,
-         contextBefore: String = "", contextAfter: String = "") {
-        id = UUID()
+    init(_ value: Evidence, id: UUID = UUID(), sender: String, subject: String, sentAt: Date,
+         body: String = "") {
+        self.id = id
         commitmentId = value.commitmentId
         sourceMessageId = value.sourceMessageId
         excerpt = value.excerpt
@@ -64,8 +72,22 @@ final class StoredEvidence {
         self.sender = sender
         self.subject = subject
         self.sentAt = sentAt
-        self.contextBefore = String(contextBefore.suffix(120))
-        self.contextAfter = String(contextAfter.prefix(120))
+        let context = EvidenceContext.retained(body: body, excerpt: value.excerpt)
+        contextBefore = context.before
+        contextAfter = context.after
+    }
+
+    func update(from value: StoredEvidence) {
+        commitmentId = value.commitmentId
+        sourceMessageId = value.sourceMessageId
+        excerpt = value.excerpt
+        source = value.source
+        capturedAt = value.capturedAt
+        sender = value.sender
+        subject = value.subject
+        sentAt = value.sentAt
+        contextBefore = value.contextBefore
+        contextAfter = value.contextAfter
     }
 
     func toCore() -> Evidence {
@@ -80,12 +102,28 @@ final class StoredReviewItem {
     var commitmentId: UUID?
     var sourceMessageId: String?
     var reason: String
+    var sender: String = ""
+    private(set) var excerpt: String = ""
+    var createdAt: Date = Date.now
 
-    init(_ value: ReviewItem) {
-        id = UUID()
+    init(_ value: ReviewItem, id: UUID = UUID(), sender: String = "",
+         excerpt: String = "", createdAt: Date = .now) {
+        self.id = id
         commitmentId = value.commitmentId
         sourceMessageId = value.sourceMessageId
         reason = value.reason
+        self.sender = sender
+        self.excerpt = EvidenceContext.boundedExcerpt(excerpt)
+        self.createdAt = createdAt
+    }
+
+    func update(from value: StoredReviewItem) {
+        commitmentId = value.commitmentId
+        sourceMessageId = value.sourceMessageId
+        reason = value.reason
+        sender = value.sender
+        excerpt = EvidenceContext.boundedExcerpt(value.excerpt)
+        createdAt = value.createdAt
     }
 
     func toCore() -> ReviewItem? {
@@ -122,14 +160,18 @@ final class StoredLedgerEntry {
 final class StoredActionReceipt {
     @Attribute(.unique) var id: UUID
     var commitmentId: UUID
-    var action: ActionReceipt.Action
+    var actionRaw: String
+    var action: ActionReceipt.Action {
+        get { ActionReceipt.Action(rawValue: actionRaw) ?? .createEvent }
+        set { actionRaw = newValue.rawValue }
+    }
     var providerId: String
     var result: String
 
     init(_ value: ActionReceipt) {
         id = UUID()
         commitmentId = value.commitmentId
-        action = value.action
+        actionRaw = value.action.rawValue
         providerId = value.providerId
         result = value.result
     }

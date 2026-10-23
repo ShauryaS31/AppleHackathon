@@ -6,12 +6,16 @@ import SwiftUI
 struct ContentView: View {
     let store: AppStore
     @Environment(\.scenePhase) private var scenePhase
-    @Query(sort: \StoredCommitment.dueStart) private var commitments: [StoredCommitment]
+    @Query(filter: #Predicate<StoredCommitment> {
+        $0.statusRaw != "completed" && $0.statusRaw != "cancelled" && $0.statusRaw != "superseded"
+    }, sort: \StoredCommitment.dueStart) private var commitments: [StoredCommitment]
     @Query private var evidence: [StoredEvidence]
     @Query private var reviews: [StoredReviewItem]
     @State private var conflicts: [ConflictDetector.Conflict] = []
     @State private var calendarError: String?
     @State private var operationError: String?
+    @State private var showingLedger = false
+    @State private var showingSettings = false
     @State private var today = Calendar.current.startOfDay(for: .now)
 
     private struct RefreshKey: Equatable {
@@ -50,7 +54,13 @@ struct ContentView: View {
                                     }
                                 }
                             } else {
-                                Label(review.reason, systemImage: "questionmark.circle")
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Label(review.reason, systemImage: "questionmark.circle")
+                                    if !review.sender.isEmpty { Text(review.sender).font(.subheadline) }
+                                    if !review.excerpt.isEmpty { Text(review.excerpt) }
+                                    Text(review.createdAt, format: .dateTime)
+                                        .font(.caption).foregroundStyle(.secondary)
+                                }
                             }
                         }
                     }
@@ -67,13 +77,15 @@ struct ContentView: View {
                 ToolbarItem {
                     Menu {
                         Button("Reset demo", systemImage: "arrow.counterclockwise") { resetDemo() }
-                        NavigationLink("What left my phone") { PersistedLedgerView() }
-                        NavigationLink("Settings") { SettingsView(store: store) }
+                        Button("What left my phone") { showingLedger = true }
+                        Button("Settings") { showingSettings = true }
                     } label: {
                         Label("More", systemImage: "ellipsis.circle")
                     }
                 }
             }
+            .navigationDestination(isPresented: $showingLedger) { PersistedLedgerView() }
+            .navigationDestination(isPresented: $showingSettings) { SettingsView(store: store) }
             .task(id: refreshKey) { await refreshConflicts() }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active {
@@ -99,8 +111,7 @@ struct ContentView: View {
     private func items(on day: Date) -> [StoredCommitment] {
         guard let end = Calendar.current.date(byAdding: .day, value: 1, to: day) else { return [] }
         return commitments.filter { item in
-            guard ![Commitment.Status.completed, .cancelled, .superseded].contains(item.status),
-                  let start = item.dueStart else { return false }
+            guard let start = item.dueStart else { return false }
             if let finish = item.dueEnd, finish > start { return start < end && finish > day }
             return start >= day && start < end
         }
