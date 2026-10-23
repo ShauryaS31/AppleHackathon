@@ -5,12 +5,26 @@ import SwiftUI
 
 struct ContentView: View {
     let store: AppStore
+    @Query private var reviews: [StoredReviewItem]
+
+    var body: some View {
+        TabView {
+            TodayView(store: store)
+                .tabItem { Label("Today", systemImage: "calendar") }
+            ReviewQueueView(store: store)
+                .tabItem { Label("Review", systemImage: "questionmark.circle") }
+                .badge(reviews.count)
+        }
+    }
+}
+
+private struct TodayView: View {
+    let store: AppStore
     @Environment(\.scenePhase) private var scenePhase
     @Query(filter: #Predicate<StoredCommitment> {
         $0.statusRaw != "completed" && $0.statusRaw != "cancelled" && $0.statusRaw != "superseded"
     }, sort: \StoredCommitment.dueStart) private var commitments: [StoredCommitment]
     @Query private var evidence: [StoredEvidence]
-    @Query private var reviews: [StoredReviewItem]
     @State private var conflicts: [ConflictDetector.Conflict] = []
     @State private var calendarError: String?
     @State private var operationError: String?
@@ -39,31 +53,6 @@ struct ContentView: View {
                 agendaSection("Today", day: today)
                 if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today) {
                     agendaSection("Tomorrow", day: tomorrow)
-                }
-                if !reviews.isEmpty {
-                    Section("Review") {
-                        ForEach(reviews) { review in
-                            if let commitment = commitments.first(where: { $0.id == review.commitmentId }) {
-                                NavigationLink {
-                                    CommitmentDetailView(commitment: commitment,
-                                        conflicts: conflicts.filter { $0.commitment.id == commitment.id })
-                                } label: {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Label(commitment.title, systemImage: "questionmark.circle")
-                                        Text(review.reason).font(.caption).foregroundStyle(.secondary)
-                                    }
-                                }
-                            } else {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Label(review.reason, systemImage: "questionmark.circle")
-                                    if !review.sender.isEmpty { Text(review.sender).font(.subheadline) }
-                                    if !review.excerpt.isEmpty { Text(review.excerpt) }
-                                    Text(review.createdAt, format: .dateTime)
-                                        .font(.caption).foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                    }
                 }
                 if let calendarError {
                     Section {

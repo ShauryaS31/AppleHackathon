@@ -70,9 +70,11 @@ enum Seed {
                 sender: item.sender, subject: item.title, sentAt: now,
                 body: "Quick update: " + item.excerpt + " Let me know what works."
             ))
-            if commitment.status == .needsReview,
+            if commitment.status == .needsReview || commitment.status == .tentative,
                let review = ReviewItem(commitmentId: commitment.id, sourceMessageId: messageID,
-                                       reason: "Choose a date and time for lunch.") {
+                                       reason: commitment.status == .tentative
+                                           ? "Tentative: confirm this plan."
+                                           : "Ambiguous date: choose a date and time.") {
                 context.insert(StoredReviewItem(review, sender: item.sender,
                     excerpt: item.excerpt, createdAt: now))
             }
