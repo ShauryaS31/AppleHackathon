@@ -16,13 +16,13 @@ A confirmed commitment without a date (for example "Please send the revised prop
 AGENTS.md; docs/SPEC.md: SPEC 5 step 3, 7.3; `Recalled/ContentView.swift`, `Recalled/CommitmentDetailView.swift`
 
 ## Acceptance criteria
-- [ ] Today has a third section "No date", below "Today" and "Tomorrow", listing commitments with status `confirmed` and no `dueStart`
-- [ ] Rows look like the other agenda rows (source icon, title, actor) and open the same Detail view
-- [ ] Sorted by title (case insensitive), so the order is stable
-- [ ] The section is hidden when empty; tentative, needsReview, completed, cancelled and superseded items never appear in it
-- [ ] The filter is a pure function over RecalledCore `Commitment` values (`[Commitment] -> [Commitment]`) in RecalledCore with unit tests for the status and date rules and the ordering, so it is covered by core-tests
-- [ ] Seed data includes one confirmed item without a date, so the section shows after "Reset demo"
-- [ ] Builds on both `Recalled` and `RecalledMac`
+- [x] Today has a third section "No date", below "Today" and "Tomorrow", listing commitments with status `confirmed` and no `dueStart`
+- [x] Rows look like the other agenda rows (source icon, title, actor) and open the same Detail view
+- [x] Sorted by title (case insensitive), so the order is stable
+- [x] The section is hidden when empty; tentative, needsReview, completed, cancelled and superseded items never appear in it
+- [x] The filter is a pure function over RecalledCore `Commitment` values (`[Commitment] -> [Commitment]`) in RecalledCore with unit tests for the status and date rules and the ordering, so it is covered by core-tests
+- [x] Seed data includes one confirmed item without a date, so the section shows after "Reset demo"
+- [x] Builds on both `Recalled` and `RecalledMac`
 
 ## Windows mode
 The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `app-build` (and `core-tests`) must be green on `task/T07b-no-date-section`. Criteria that need a running app are reviewed as compile-checked and marked PENDING DEVICE; the manager adds them to the "Mac gate checklist" in docs/PLAN.md.
@@ -57,3 +57,10 @@ Items dated after tomorrow (a later "Upcoming" view), editing from Today.
   - `xcodebuild -scheme RecalledMac -destination 'generic/platform=macOS' build`: attempted; could not run because xcodebuild is not installed/recognized.
   - `git diff --check`: passed, no whitespace errors. Source/diff review completed; this is not a compile or runtime check.
 - Not done / risks / questions for the manager: Windows has no Swift toolchain or Xcode; no tools were installed and no tests/builds are claimed to pass. Manager must push and obtain green core-tests and app-build, then add the PENDING DEVICE checks to the Mac gate checklist. Existing Detail view displays Date = Needs review for any nil dueStart, including confirmed undated items; noted without changing it outside this task's Today scope. No other task started; no merge or push performed.
+
+## Review (round 1)
+- Date: 2026-10-23 16:49 AEDT
+- Verdict: PASS
+- Evidence: core-tests run 39907633419 green (new AgendaFilterTests), app-build run 39907633400 green on task/T07b-no-date-section.
+- Checked: AgendaFilter.noDate is a pure RecalledCore function (confirmed and no dueStart, title order ignoring case, id breaks ties); Today shows "No date" below Today and Tomorrow, hidden when empty, rows reuse the shared agendaRow (now with actor) and open Detail; seed adds "Send revised proposal" with no date, and an empty due is no longer treated as ambiguous.
+- PENDING DEVICE: moved to the Mac gate checklist (T07b row).
