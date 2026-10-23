@@ -29,10 +29,12 @@ Parallel lanes on Saturday morning: T06 (SCX spike) runs in its own worktree alo
 | [T03](../tasks/T03-prefilter.md) | Normaliser, quote and signature stripper, rules prefilter | M1 | Sat 24 Oct, 10:45 to 11:30 | T02 | codex | done |
 | [T04](../tasks/T04-resolvers.md) | DateResolver, EvidenceValidator, Matcher, ConflictDetector | M1 | Sat 24 Oct, 10:45 to 12:00 | T02 | codex | done |
 | [T04b](../tasks/T04b-date-phrases.md) | DateResolver: common date phrasings | M1 | Fri 23 Oct (Windows mode) | T04 | codex | done |
+| [T04c](../tasks/T04c-timezone-suffixes.md) | DateResolver: timezone suffixes | M1 | Fri 23 Oct (Windows mode) | T04b, T09 | codex | todo |
 | [T05a](../tasks/T05a-instructions-benchmark.md) | Extraction instructions and benchmark fixtures | M1 | Fri 23 Oct (Windows mode) | T03, T04b | codex | done |
 | [T05b](../tasks/T05b-fm-extractor.md) | Foundation Models extractor and on-device benchmark screen | M1 | When the Mac arrives | T05a, T09 | codex, then owner on device | blocked |
 | [T06](../tasks/T06-scx-spike.md) | SCXSwiftKit spike: PlanningModel implementation | M1 | Sat 24 Oct, 10:00 to 11:30 (parallel worktree) | T01 | codex | todo |
 | [T07](../tasks/T07-store-today.md) | SwiftData store, seed dataset, Today agenda, item detail | M2 | Sat 24 Oct, 12:30 to 14:00 | T05a | codex | done |
+| [T07b](../tasks/T07b-no-date-section.md) | "No date" section on Today | M2 | Fri 23 Oct (Windows mode) | T07, T08 | codex | todo |
 | [T08](../tasks/T08-review.md) | Review queue | M2 | Sat 24 Oct, 13:30 to 14:30 | T07 | codex | done |
 | [T09](../tasks/T09-share-paste.md) | Share extension and paste input (text only) | M2 | Sat 24 Oct, 14:00 to 15:30 | T07 | codex, then owner on device | changes_requested |
 | [T10](../tasks/T10-eventkit.md) | EventKit conflicts, approved event creation, receipts | M3 | Sat 24 Oct, 15:30 to 17:00 | T08 | codex | todo |
@@ -80,3 +82,8 @@ Runtime checks the agents cannot do on Windows. Each review marks them "PENDING 
 | 2026-10-23 | T05 split: T05a instructions port plus 20 benchmark fixtures (gate app-build); T05b Foundation Models wiring and on-device benchmark, blocked until the device is available | Shaurya |
 | 2026-10-23 | Windows mode continues: T09 doc change, T04b, T05a, T07, T08, T09, T10. App tasks gated by app-build CI; runtime criteria marked PENDING DEVICE in reviews and collected in "Mac gate checklist". Stop after T10 or when the owner says the Mac has arrived | Shaurya |
 | 2026-10-23 | Inbox pipeline (prefilter, extractor, evidence, dates, matcher) lives in RecalledCore and is tested with FakeExtractor in T09, so it is covered by core-tests before Foundation Models is wired in T05b | Manager |
+| 2026-10-23 | T09 round 2 restart: save the partial diff as a patch, discard, redispatch clean. Superseded on inspection: the round had not been interrupted (only the dispatch wrapper was stopped; codex.exe finished and committed f9ea364), so the manager reviews f9ea364 as round 2 | Shaurya, Manager |
+| 2026-10-23 | New required task T04c: DateResolver timezone suffixes ("10:00 AM Australia/Sydney", "17:00 Sydney time", "6pm AEDT", "9am UTC", "3pm Perth time"), converted to the user's zone with the source zone kept on the record; re-run the 15 ported fixtures. Gate: core-tests | Shaurya |
+| 2026-10-23 | New required task T07b: "No date" section on Today for confirmed items without a date. Gate: app-build | Shaurya |
+| 2026-10-23 | Order: T09 round 2, T04c, T07b, T10. Stop after T10 or when the owner says the Mac has arrived | Shaurya |
+| 2026-10-23 | Process: one codex process at a time unless using worktrees; after each round confirm no `codex exec` process is left and stop leftovers; an interrupted round is saved as a patch and discarded before redispatch (CLAUDE.md) | Shaurya |
