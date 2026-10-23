@@ -1,6 +1,15 @@
 import Foundation
 import RecalledCore
+import SwiftData
 import SwiftUI
+
+struct PersistedLedgerView: View {
+    @Query(sort: \StoredLedgerEntry.timestamp, order: .reverse) private var entries: [StoredLedgerEntry]
+
+    var body: some View {
+        LedgerView(entries: entries.map { $0.toCore() })
+    }
+}
 
 struct LedgerView: View {
     let entries: [LedgerEntry]

@@ -44,3 +44,8 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 15:04 AEDT | T05a | codex | dev-report r1 | Added extraction instructions, 20 benchmark fixtures and five Core tests; committed ed8b639; Swift/Xcode unavailable on Windows, core-tests and app-build CI pending
 - 2026-10-23 15:07 AEDT | T05a | claude | review r1 PASS | 117 tests green on core-tests 39898373541; app-build 39898373522 green (both apps bundle benchmark.json)
 - 2026-10-23 15:07 AEDT | T05a | claude | merge | task/T05a-instructions-benchmark merged to main, status done
+- 2026-10-23 15:07 AEDT | T07 | claude | dispatch | round 1 on task/T07-store-today (gate: app-build CI (core-tests if Core changes))
+- 2026-10-23 15:15 AEDT | T07 | codex | dev-report r1 | Persisted agenda, evidence detail, 15-item demo, Settings deletion and Ledger query committed as 31ab7a7; app-build CI and device checks pending (no Xcode on Windows)
+- 2026-10-23 15:17 AEDT | T07 | claude | review r1 CHANGES | CI green; 6 fixes: toolbar navigation, bounded evidence context (no full bodies), raw-string enums for predicates, message-level review fields, single ingest API, auto-retry store open
+- 2026-10-23 15:22 AEDT | T07 | claude | dev-report r2 | Logged for codex (sandbox could not write .git): round 1 fixes 1 to 6 addressed; EvidenceContext moved to RecalledCore with tests
+- 2026-10-23 15:25 AEDT | T07 | claude | review r2 PASS | core-tests 39899975476 and app-build 39899975400 green; runtime checks added to Mac gate checklist
