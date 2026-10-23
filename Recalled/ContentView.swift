@@ -2,9 +2,15 @@ import Foundation
 import RecalledCore
 import SwiftData
 import SwiftUI
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 struct ContentView: View {
     let store: AppStore
+    @Environment(\.scenePhase) private var scenePhase
     @Query private var reviews: [StoredReviewItem]
 
     var body: some View {
@@ -15,6 +21,16 @@ struct ContentView: View {
                 .tabItem { Label("Review", systemImage: "questionmark.circle") }
                 .badge(reviews.count)
         }
+        .task { await store.processInbox() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await store.processInbox() } }
+        }
+        .alert("Shared message import", isPresented: Binding(
+            get: { store.inboxError != nil }, set: { if !$0 { store.inboxError = nil } }
+        )) {
+            Button("Retry") { Task { await store.processInbox() } }
+            Button("OK", role: .cancel) { store.inboxError = nil }
+        } message: { Text(store.inboxError ?? "") }
     }
 }
 
@@ -28,6 +44,7 @@ private struct TodayView: View {
     @State private var conflicts: [ConflictDetector.Conflict] = []
     @State private var calendarError: String?
     @State private var operationError: String?
+    @State private var pasteNotice: String?
     @State private var showingLedger = false
     @State private var showingSettings = false
     @State private var today = Calendar.current.startOfDay(for: .now)
@@ -46,6 +63,22 @@ private struct TodayView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    Button("Paste message", systemImage: "doc.on.clipboard") {
+                        #if os(iOS)
+                        let text = UIPasteboard.general.string
+                        #elseif os(macOS)
+                        let text = NSPasteboard.general.string(forType: .string)
+                        #else
+                        let text: String? = nil
+                        #endif
+                        Task { pasteNotice = await store.pasteMessage(text) }
+                    }
+                    .disabled(store.isImporting)
+                    if let pasteNotice {
+                        Text(pasteNotice).font(.callout).foregroundStyle(.secondary)
+                    }
+                }
                 if commitments.isEmpty {
                     ContentUnavailableView("Your day, recalled", systemImage: "calendar",
                         description: Text("Choose Reset demo from the menu to load sample commitments."))

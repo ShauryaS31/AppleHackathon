@@ -10,12 +10,20 @@ final class AppStore {
     let container: ModelContainer
     private(set) var calendarStore: any CalendarStore
     private(set) var calendarRevision = 0
+    // T05b replaces the default extractor here, shared by paste and inbox imports.
+    let extractor: any CommitmentExtractor
+    var isImporting = false
+    // Changing this token prevents suspended extraction from restoring erased input.
+    var inboxGeneration = UUID()
+    var inboxError: String?
     private let usesDemoCalendar: Bool
     private static var loggedFallback = false
     private static let logger = Logger(subsystem: "au.recalled.app", category: "Persistence")
 
-    init(calendarStore: (any CalendarStore)? = nil) throws {
+    init(calendarStore: (any CalendarStore)? = nil,
+         extractor: any CommitmentExtractor = PendingModelExtractor()) throws {
         self.container = try Self.makeContainer()
+        self.extractor = extractor
         self.usesDemoCalendar = calendarStore == nil
         self.calendarStore = calendarStore ?? InMemoryCalendarStore(events: Seed.calendarEvents())
         container.mainContext.autosaveEnabled = false
@@ -24,7 +32,7 @@ final class AppStore {
     private static func makeContainer() throws -> ModelContainer {
         let schema = Schema([
             StoredCommitment.self, StoredEvidence.self, StoredReviewItem.self,
-            StoredLedgerEntry.self, StoredActionReceipt.self
+            StoredLedgerEntry.self, StoredActionReceipt.self, StoredInboxReceipt.self
         ])
         let configuration: ModelConfiguration
         if let directory = try groupDirectory() {
@@ -87,7 +95,7 @@ final class AppStore {
     /// UUID on retries or edits (Core Evidence and ReviewItem have no row ID).
     /// All inserts and updates commit together; failures roll the batch back.
     func ingest(commitments: [Commitment], evidence: [StoredEvidence],
-                reviewItems: [StoredReviewItem]) throws {
+                reviewItems: [StoredReviewItem], sourceMessageID: String? = nil) throws {
         let context = container.mainContext
         do {
             for value in commitments {
@@ -129,6 +137,9 @@ final class AppStore {
                     context.insert(value)
                 }
             }
+            if let sourceMessageID {
+                context.insert(StoredInboxReceipt(sourceMessageID: sourceMessageID))
+            }
             try context.save()
         } catch {
             context.rollback()
@@ -139,6 +150,7 @@ final class AppStore {
     func resetDemo(now: Date = .now) throws {
         let context = container.mainContext
         do {
+            try clearInbox()
             try deleteRows(in: context)
             Seed.insert(into: context, now: now)
             try context.save()
@@ -155,6 +167,7 @@ final class AppStore {
     func forgetAll() throws {
         let context = container.mainContext
         do {
+            try clearInbox()
             try deleteRows(in: context)
             try context.save()
         } catch {
@@ -165,7 +178,21 @@ final class AppStore {
         calendarRevision += 1
     }
 
+    private func clearInbox() throws {
+        inboxGeneration = UUID()
+        let manager = FileManager.default
+        if let group = manager.containerURL(forSecurityApplicationGroupIdentifier: "group.au.recalled.app") {
+            let directory = group.appendingPathComponent("Inbox", isDirectory: true)
+            if manager.fileExists(atPath: directory.path) {
+                // Remove the entire queue, including hidden files and nested failed input.
+                try manager.removeItem(at: directory)
+            }
+        }
+        inboxError = nil
+    }
+
     private func deleteRows(in context: ModelContext) throws {
+        for row in try context.fetch(FetchDescriptor<StoredInboxReceipt>()) { context.delete(row) }
         for row in try context.fetch(FetchDescriptor<StoredEvidence>()) { context.delete(row) }
         for row in try context.fetch(FetchDescriptor<StoredReviewItem>()) { context.delete(row) }
         for row in try context.fetch(FetchDescriptor<StoredLedgerEntry>()) { context.delete(row) }

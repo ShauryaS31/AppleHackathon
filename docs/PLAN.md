@@ -36,7 +36,7 @@ Parallel lanes on Saturday morning: T06 (SCX spike) runs in its own worktree alo
 | [T07](../tasks/T07-store-today.md) | SwiftData store, seed dataset, Today agenda, item detail | M2 | Sat 24 Oct, 12:30 to 14:00 | T05a | codex | done |
 | [T07b](../tasks/T07b-no-date-section.md) | "No date" section on Today | M2 | Fri 23 Oct (Windows mode) | T07, T08 | codex | todo |
 | [T08](../tasks/T08-review.md) | Review queue | M2 | Sat 24 Oct, 13:30 to 14:30 | T07 | codex | done |
-| [T09](../tasks/T09-share-paste.md) | Share extension and paste input (text only) | M2 | Sat 24 Oct, 14:00 to 15:30 | T07 | codex, then owner on device | todo |
+| [T09](../tasks/T09-share-paste.md) | Share extension and paste input (text only) | M2 | Sat 24 Oct, 14:00 to 15:30 | T07 | codex, then owner on device | changes_requested |
 | [T10](../tasks/T10-eventkit.md) | EventKit conflicts, approved event creation, receipts | M3 | Sat 24 Oct, 15:30 to 17:00 | T08 | codex | todo |
 | [T11](../tasks/T11-notifications.md) | Local notification reminders | M3 | Sat 24 Oct, 16:30 to 18:00 | T10 | codex | todo |
 | [T12](../tasks/T12-pseudonymiser.md) | Pseudonymiser and 'What left my phone' ledger | M4 | Sat 24 Oct, 18:00 to 19:00 | T02 | codex | done |
