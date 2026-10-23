@@ -2,6 +2,15 @@ import Foundation
 import RecalledCore
 import SwiftData
 
+/// Metadata only, saved in the same transaction as an import. Retrying deletion
+/// of an inbox file after a crash must not apply its changes a second time.
+@Model
+final class StoredInboxReceipt {
+    @Attribute(.unique) var sourceMessageID: String
+
+    init(sourceMessageID: String) { self.sourceMessageID = sourceMessageID }
+}
+
 // App-only persistence types. No SourceMessage or message body is stored.
 @Model
 final class StoredCommitment {

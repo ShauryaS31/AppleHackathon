@@ -113,11 +113,12 @@ targets:
           NSExtensionAttributes:
             NSExtensionActivationRule:
               NSExtensionActivationSupportsText: true
-              NSExtensionActivationSupportsImageWithMaxCount: 1
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
     entitlements:
       path: Config/Generated/RecalledShare.entitlements
       properties:
         com.apple.security.application-groups: [group.au.recalled.app]
+        com.apple.developer.default-data-protection: NSFileProtectionComplete
 
 schemes:
   Recalled:

@@ -11,20 +11,26 @@ public enum CommitmentUpdater {
     public static func reschedule(
         _ commitment: Commitment, using item: ExtractionDTO, sentAt: Date, timeZone: TimeZone
     ) -> Result {
-        let resolution = DateResolver.resolve(dueText: item.dueText, sentAt: sentAt, timeZone: timeZone)
         guard commitment.version < Int.max else { return .review }
         var updated = commitment
-        switch resolution {
-        case .exact(let interval):
-            updated.dueStart = interval.start
-            updated.dueEnd = interval.end
-            updated.kind = item.kind
-        case .dateOnly(let day):
-            updated.dueStart = day
+        if item.dueText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            updated.dueStart = nil
             updated.dueEnd = nil
-            updated.kind = .deadline
-        case .ambiguous:
-            return .review
+            updated.kind = item.kind
+        } else {
+            let resolution = DateResolver.resolve(dueText: item.dueText, sentAt: sentAt, timeZone: timeZone)
+            switch resolution {
+            case .exact(let interval):
+                updated.dueStart = interval.start
+                updated.dueEnd = interval.end
+                updated.kind = item.kind
+            case .dateOnly(let day):
+                updated.dueStart = day
+                updated.dueEnd = nil
+                updated.kind = .deadline
+            case .ambiguous:
+                return .review
+            }
         }
         updated.title = item.title
         updated.actor = item.actor

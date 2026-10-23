@@ -57,3 +57,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 15:41 AEDT | T08 | claude | review r2 PASS | 138 tests green on core-tests 39901365936; app-build 39901365948 green
 - 2026-10-23 15:41 AEDT | T08 | claude | merge | task/T08-review merged to main, status done
 - 2026-10-23 15:41 AEDT | T09 | claude | dispatch | round 1 on task/T09-share-paste (gate: core-tests and app-build CI)
+- 2026-10-23 15:46 AEDT | T09 | codex | dev-report r1 | Added Core pipeline with 22 test declarations, protected text/URL share inbox and iOS/macOS paste; static checks passed, Swift/Xcode CI and device checks pending; commit blocked by sandbox index.lock permission denial, manager commits
