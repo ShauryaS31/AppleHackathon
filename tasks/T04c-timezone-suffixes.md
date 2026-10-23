@@ -37,3 +37,36 @@ swift test --package-path RecalledCore
 Displaying the source zone in the UI, US time zone abbreviations, natural-language zones other than the cities listed.
 
 <!-- Developer appends "## Dev Report (round n)" below. Manager appends "## Review (round n)" below. Never delete earlier rounds. -->
+
+## Dev Report (round 1)
+- Date: 2026-10-23 16:39 AEDT
+- Changed files: `RecalledCore/Sources/RecalledCore/DateResolver.swift`, `RecalledCore/Sources/RecalledCore/InboxPipeline.swift`, `RecalledCore/Sources/RecalledCore/CommitmentUpdater.swift`, `RecalledCore/Tests/RecalledCoreTests/DateResolverTimeZoneTests.swift` (new), `RecalledCore/Tests/RecalledCoreTests/InboxPipelineTests.swift`, `Recalled/Resources/benchmark.json`, this task file; `docs/LOG.md` receives the handoff entry after the commit attempt.
+- What I did: Added case-insensitive source-zone suffix parsing and the public `resolveDetailed` API; retained `resolve` as its resolution-only wrapper. Day selection and date-only midnight stay in the user's calendar; timed results rebuild that day's year/month/day in the source calendar and preserve absolute instants. Zoned bare times use sentAt's local day; existing unzoned bare-time ambiguity remains unchanged. Added source-zone persistence for new/tentative items and, through the existing CommitmentUpdater path, reschedules/updates. Added focused regression tests and removed obsolete zone-related Review expectations from seven ported fixtures.
+- Acceptance criteria (test coverage below is written, not executed locally):
+  1. Trailing IANA, city and abbreviation suffixes, case, optional at/comma, and every listed example: `zoneSuffixExamplesAndOptionalSeparators`, `zoneCityNamesKeepCanonicalIdentifiersAndUseSeasonalOffsets`, `zoneAbbreviationsHaveFixedOffsetsInBothSeasons`. All 11 listed cities and nine abbreviations are covered. Canberra maps to Australia/Sydney.
+  2. Source wall clocks produce absolute instants with correct user-local starts/ends: `zoneInstantsDisplayCorrectlyInTheUserZoneIncludingRangeEndsAndDayRollover` covers 9am UTC -> 20:00 Sydney, 3pm Perth -> 18:00 Sydney, 6pm AEDT -> 15:00 Perth, range endpoints and next-day rollover. Independent UTC assertions cover seasonal city offsets and fixed abbreviations. `zoneDSTValidationUsesTheSourceCalendar` covers source-zone gaps/overlaps.
+  3. Friday/tomorrow/day inference remain user-local: `zoneRelativeDaysAndMissingYearUseTheUsersCalendar` uses a Sydney Friday that is still Thursday in UTC/Perth, tests the reverse source/user direction, and checks missing-year inference.
+  4. Zoned date-only phrases stay dateOnly on the user-local day: `zoneDateOnlyStaysOnTheUserDayAndDetailedUnzonedResultsHaveNoSource`, `pipelineZonedDateOnlyStoresSourceZoneWithoutShiftingDeadline`.
+  5. Unknown suffixes remain ambiguous: `zoneUnknownSuffixesAndMalformedTimesRemainAmbiguous` includes EST-ish, Mars time, PST, invalid IANA names, invalid dates/times and unsupported trailing prose; `pipelineUnknownZoneRequiresReviewWithoutMutation` covers ingestion.
+  6. Source-zone API/storage: `zoneAbbreviationsHaveFixedOffsetsInBothSeasons` checks wrapper parity and fixed offsets; `zoneDateOnlyStaysOnTheUserDayAndDetailedUnzonedResultsHaveNoSource` checks absent source metadata. `pipelineStoresSourceZoneForNewTentativeAndRescheduledItems` covers new/noChange/updated/rescheduled, IANA identifiers, GMT+1100/GMT+1030 and the user-zone fallback. `pipelineDatelessUpdatePreservesExistingSourceZone` protects existing schedules.
+  7. Existing T04/T04b tests: `ResolversTests.swift` is unchanged (verified with git diff); execution remains pending on macOS CI. No claim that they passed.
+  8. Benchmark agreement: existing `BenchmarkFixtureTests.swift` is unchanged. Updated only names and requiresReview for ported-02/05/06/13/14/15/17; existing expected dates/times already match the intended resolutions. PowerShell JSON audit passed: 20 fixtures, 15 ported, seven zone fixtures changed, one ported fixture still marked Review; every body, evidence excerpt, dueText, date/time label and unrelated field is unchanged. Swift benchmark agreement could not be re-run locally.
+- Ported fixture outcomes (expected from code inspection and fixture audit; not a Swift execution result):
+  - ported-01: resolves - date-only report deadline, 2026-10-12.
+  - ported-02: resolves - Australia/Sydney meeting, 2026-10-14 10:00.
+  - ported-03: resolves - irrelevant thanks message; no item/date to resolve and no Review expectation.
+  - ported-04: resolves - dateless commitment is valid; no date or Review expectation.
+  - ported-05: resolves - cancelled meeting's Australia/Sydney date, 2026-10-14 10:00.
+  - ported-06: resolves - report deadline 2026-10-12 plus zoned meeting 2026-10-14 10:00.
+  - ported-07: resolves - tomorrow is date-only, 2026-10-11.
+  - ported-08: resolves - irrelevant optional newsletter; no item/date to resolve and no Review expectation.
+  - ported-09: still Review - uncertain personal obligation, although Friday resolves to 2026-10-16.
+  - ported-10: resolves - Friday reschedule, 2026-09-18.
+  - ported-11: resolves - date-only report deadline, 2026-10-12; tracking URL fixture unchanged.
+  - ported-13: resolves - Sydney range, 2026-10-16 16:30-17:00. Still tentative; InboxPipeline independently creates its existing tentative Review. The benchmark's requiresReview flag measures ambiguous dates/uncertain relevance, not tentative status (as also demonstrated by new-01).
+  - ported-14: resolves - Sydney deadline, 2026-10-20 17:00.
+  - ported-15: resolves - Sydney range, 2026-10-21 12:00-12:30.
+  - ported-17: resolves - Sydney commitment, 2026-10-29 14:00.
+- Review count: 1 of 15 remains marked requiresReview in the benchmark (ported-09); zero remain date-ambiguous. If these labels are ingested through InboxPipeline, ported-13 also retains its tentative Review, for two fixtures with Review behavior. The task's stated eight zone-blocked fixtures is a count discrepancy: the baseline contains seven zone-blocked fixtures plus the uncertain ported-09. Tentative/relevance policy was not changed.
+- Verify commands run and results: `swift test --package-path RecalledCore` was attempted and could not execute because `swift` is not installed/recognised on Windows; no Swift toolchain or Xcode was installed. The suite and benchmark agreement have NOT passed locally. PowerShell fixture audit passed as described above. Plain `git diff --check` reported CRLF line endings as trailing whitespace in the already-CRLF benchmark JSON; `git -c core.whitespace=cr-at-eol diff --check` passed, preserving that file's existing line endings.
+- Not done / risks / questions for the manager: Runtime/compile verification requires GitHub Actions `core-tests` green on `task/T04c-timezone-suffixes`, with `app-build` remaining green. No CI run or app build was performed here. UI display, US abbreviations, and extra natural-language cities remain out of scope. No other task was started.
