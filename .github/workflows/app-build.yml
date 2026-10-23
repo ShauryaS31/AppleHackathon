@@ -1,0 +1,26 @@
+name: app-build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  app-build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print toolchain versions
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen
+      - name: Build iOS app and share extension
+        run: xcodebuild -scheme Recalled -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+      - name: Build native macOS app
+        run: xcodebuild -scheme RecalledMac -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO build
