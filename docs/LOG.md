@@ -65,3 +65,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 16:32 AEDT | - | claude | decision | Owner: new T04c (timezone suffixes) and T07b (No date section), order T09 r2, T04c, T07b, T10; CLAUDE.md gains codex process rules (one at a time, check and stop leftover codex exec only, patch and discard interrupted rounds)
 - 2026-10-23 16:34 AEDT | T09 | claude | review r2 PASS | Test run with 163 tests green on core-tests 39906339215; app-build 39906339202 green
 - 2026-10-23 16:34 AEDT | T09 | claude | merge | task/T09-share-paste merged to main, status done
+- 2026-10-23 16:35 AEDT | T04c | claude | dispatch | round 1 on task/T04c-timezone-suffixes (gate: core-tests CI (app-build stays green))
