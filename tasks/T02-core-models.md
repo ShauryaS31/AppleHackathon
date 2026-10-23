@@ -16,16 +16,16 @@ Define the shared types and platform protocols so app and tests share one vocabu
 AGENTS.md; docs/SPEC.md: SPEC 7.2, 7.3
 
 ## Acceptance criteria
-- [ ] Types in RecalledCore: SourceMessage, Commitment (with Kind and Status enums from SPEC 7.3), Evidence, ReviewItem, LedgerEntry, ActionReceipt, ItemRef, CalendarEvent, EventDraft, plus a plain `ExtractionDTO` mirroring SPEC 7.4 (Core cannot import FoundationModels)
-- [ ] Protocols CommitmentExtractor, CalendarStore, PlanningModel, Speech as in SPEC 7.2, all Sendable
-- [ ] Fakes: FakeExtractor (returns scripted results), InMemoryCalendarStore, FakePlanningModel (configurable regions), SilentSpeech
-- [ ] All types Codable, Sendable, Equatable; unit tests cover Codable round trip and fake behaviour
+- [x] Types in RecalledCore: SourceMessage, Commitment (with Kind and Status enums from SPEC 7.3), Evidence, ReviewItem, LedgerEntry, ActionReceipt, ItemRef, CalendarEvent, EventDraft, plus a plain `ExtractionDTO` mirroring SPEC 7.4 (Core cannot import FoundationModels)
+- [x] Protocols CommitmentExtractor, CalendarStore, PlanningModel, Speech as in SPEC 7.2, all Sendable
+- [x] Fakes: FakeExtractor (returns scripted results), InMemoryCalendarStore, FakePlanningModel (configurable regions), SilentSpeech
+- [x] All types Codable, Sendable, Equatable; unit tests cover Codable round trip and fake behaviour
 
 ### Added by manager (2026-10-23)
-- [ ] Also define the types the SPEC 7.2 protocols reference: `ExtractionResult` (items plus a relevance flag), `PseudonymisedPlanRequest`, `PlanResponse`
-- [ ] `SourceMessage` also carries `labels: [String]` (Gmail label ids, empty for share and seed) and `headers: [String: String]` (empty when unknown), so T03 can prefilter without changing this type
-- [ ] `Commitment.Status` raw values match SPEC 7.3 exactly: candidate, tentative, confirmed, completed, cancelled, superseded, needsReview. `Commitment.Kind`: event, deadline, commitment
-- [ ] No file in RecalledCore imports FoundationModels, EventKit, UIKit or SwiftUI
+- [x] Also define the types the SPEC 7.2 protocols reference: `ExtractionResult` (items plus a relevance flag), `PseudonymisedPlanRequest`, `PlanResponse`
+- [x] `SourceMessage` also carries `labels: [String]` (Gmail label ids, empty for share and seed) and `headers: [String: String]` (empty when unknown), so T03 can prefilter without changing this type
+- [x] `Commitment.Status` raw values match SPEC 7.3 exactly: candidate, tentative, confirmed, completed, cancelled, superseded, needsReview. `Commitment.Kind`: event, deadline, commitment
+- [x] No file in RecalledCore imports FoundationModels, EventKit, UIKit or SwiftUI
 
 ## Windows mode
 The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code and tests carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `core-tests` must be green on `task/T02-core-models`.
@@ -85,3 +85,9 @@ Required fixes:
   - Platform isolation: static scan of all Core Swift files returned `PASS: no forbidden Core imports` for FoundationModels, EventKit, UIKit, and SwiftUI. A stale-case scan also passed.
 - Verify commands run and results: `swift test --package-path RecalledCore` was attempted and exited 1 because PowerShell could not find swift. This Windows environment has no Swift toolchain or Xcode; no installation was attempted, and compilation/tests are not claimed to pass. `git diff --check` passed.
 - Not done / risks / questions for the manager: GitHub Actions `core-tests` must be green for these round 2 changes on `task/T02-core-models`; the round 1 green run does not validate them. Pseudonymisation itself remains outside scope. Commit attempt follows this report; its outcome will be recorded here if blocked.
+
+## Review (round 2)
+- Date: 2026-10-23 14:03 AEDT
+- Verdict: PASS
+- Evidence: core-tests run 39892767862 green (24 tests passed), app-build run 39892767859 green on task/T02-core-models.
+- All six round 1 fixes verified in the diff: ReviewItem failable init plus validating decode; Relevance.irrelevant and Change.noChange keep raw value "none"; SourceMessage decodeIfPresent for labels/headers; PlanItem without UUIDs; scripted errors on both fakes; deterministic fake-N ids.

@@ -21,3 +21,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 13:58 AEDT | - | claude | correction | Timestamps on the T01 review r1 and merge lines (14:05, 14:06) were estimated, not read from the clock; actual times were about 13:50 and 13:51
 - 2026-10-23 13:58 AEDT | T02 | claude | review r1 CHANGES | CI green; 6 fixes: message-level ReviewItem, rename .none cases, lenient SourceMessage decode, PlanItem without UUIDs, throwing fakes, deterministic fake ids
 - 2026-10-23 14:01 AEDT | T02 | codex | dev-report r2 | Addressed all six review fixes with regression tests; committed e06ba7d; static checks passed, Swift unavailable on Windows, core-tests CI pending
+- 2026-10-23 14:03 AEDT | T02 | claude | review r2 PASS | 24 tests green on core-tests 39892767862; app-build green
