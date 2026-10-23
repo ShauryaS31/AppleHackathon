@@ -28,3 +28,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 14:10 AEDT | T03 | claude | review r1 PASS | 38 tests green on core-tests 39893355458; app-build green
 - 2026-10-23 14:10 AEDT | T03 | claude | merge | task/T03-prefilter merged to main, status done
 - 2026-10-23 14:10 AEDT | T04 | claude | dispatch | round 1 on task/T04-resolvers (gate: core-tests CI)
+- 2026-10-23 14:17 AEDT | T04 | codex | dev-report r1 | Deterministic date/evidence/match/conflict resolvers and commitment updates committed with 30 tests; Swift unavailable on Windows, core-tests CI pending
