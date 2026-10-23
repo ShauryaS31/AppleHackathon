@@ -16,17 +16,17 @@ All deterministic logic the model must never do.
 AGENTS.md; docs/SPEC.md: SPEC 7.4 rules; 8 (A2 to A6, A11)
 
 ## Acceptance criteria
-- [ ] `DateResolver.resolve(dueText:sentAt:timeZone:)` returns an exact interval, a date-only deadline, or ambiguous. Uses NSDataDetector plus Calendar in the given time zone. Handles 'tomorrow', weekdays, 'Sat 7pm', '25/10', '25 Oct 2026 6:30pm', relative to sentAt. Australian day/month order
-- [ ] `EvidenceValidator` passes only if the excerpt is an exact substring of the normalised message and at least 8 chars
-- [ ] `Matcher` maps an extracted item to an existing Commitment via updatesRef or a title similarity threshold; ambiguous matches return review
-- [ ] `ConflictDetector` finds overlaps between timed commitments and CalendarEvents; deadlines never conflict
-- [ ] Applying a reschedule bumps version and keeps the id (A3); cancel sets status cancelled (A4)
-- [ ] Unit tests for each scenario named above, with fixed time zone Australia/Sydney
+- [x] `DateResolver.resolve(dueText:sentAt:timeZone:)` returns an exact interval, a date-only deadline, or ambiguous. Uses NSDataDetector plus Calendar in the given time zone. Handles 'tomorrow', weekdays, 'Sat 7pm', '25/10', '25 Oct 2026 6:30pm', relative to sentAt. Australian day/month order
+- [x] `EvidenceValidator` passes only if the excerpt is an exact substring of the normalised message and at least 8 chars
+- [x] `Matcher` maps an extracted item to an existing Commitment via updatesRef or a title similarity threshold; ambiguous matches return review
+- [x] `ConflictDetector` finds overlaps between timed commitments and CalendarEvents; deadlines never conflict
+- [x] Applying a reschedule bumps version and keeps the id (A3); cancel sets status cancelled (A4)
+- [x] Unit tests for each scenario named above, with fixed time zone Australia/Sydney
 
 ### Added by manager (2026-10-23)
-- [ ] `DateResolver` returns an enum with cases for exact interval (`DateInterval`), date-only deadline (a day in the given time zone) and ambiguous. A time with no end gets a default 1 hour interval. '25/10' is 25 October, never month 25
-- [ ] `Matcher` rule: lowercase, strip punctuation, token-set Jaccard similarity on titles. At least 0.6 to one existing item is a match; between 0.4 and 0.6, or 0.6 or more to two items, returns review; below 0.4 is new. A valid `updatesRef` always wins over title similarity
-- [ ] Tests use a fixed `sentAt` and `TimeZone(identifier: "Australia/Sydney")`, never the current clock
+- [x] `DateResolver` returns an enum with cases for exact interval (`DateInterval`), date-only deadline (a day in the given time zone) and ambiguous. A time with no end gets a default 1 hour interval. '25/10' is 25 October, never month 25
+- [x] `Matcher` rule: lowercase, strip punctuation, token-set Jaccard similarity on titles. At least 0.6 to one existing item is a match; between 0.4 and 0.6, or 0.6 or more to two items, returns review; below 0.4 is new. A valid `updatesRef` always wins over title similarity
+- [x] Tests use a fixed `sentAt` and `TimeZone(identifier: "Australia/Sydney")`, never the current clock
 
 ## Windows mode
 The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code and tests carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `core-tests` must be green on `task/T04-resolvers`.
@@ -57,3 +57,10 @@ UI, EventKit.
   - Manager addition, fixed clock and Sydney zone: fixtures use `TimeZone(identifier: "Australia/Sydney")` and explicit dates, never the current clock. Includes an independent UTC expectation for A2, local midnight and daylight-saving tests.
 - Verify commands run and results: `swift test --package-path RecalledCore` attempted; could not run because `swift` is not installed/recognised on this Windows host. No Swift tests or compilation claimed passed. `git diff --check` passed for tracked changes at the time; separate PowerShell checks of all six new Swift files found no trailing whitespace or current-clock/ambient-calendar references. Core import scan found no FoundationModels, EventKit, UIKit or SwiftUI imports. GitHub Actions `core-tests` on `task/T04-resolvers` remains the required gate.
 - Not done / risks / questions for the manager: Apple Foundation/NSDataDetector behavior and Swift 6 compilation still require macOS CI. Unsupported date prose, ambiguous/nonexistent DST times and overnight ranges return review. Bare weekdays include today; missing years choose the next occurrence on or after the message's local day. Review persistence, notification/reminder removal and provider updates are caller responsibilities outside these pure Core helpers; there is no reminder scheduler in the Core models. No toolchain installed. Git writes succeeded and the implementation plus this report were committed on task/T04-resolvers; docs/LOG.md is appended after the commit as instructed.
+
+## Review (round 1)
+- Date: 2026-10-23 14:20 AEDT
+- Verdict: PASS
+- Evidence: core-tests run 39894209979 green (92 tests in the package, 30 in ResolversTests.swift), app-build run 39894209980 green on task/T04-resolvers. Tests use a fixed sentAt and Australia/Sydney, no Date().
+- Checked: DateResolver enum (exact, dateOnly, ambiguous), 1 hour default, 25/10 is 25 October, DST gaps and repeats go to ambiguous; EvidenceValidator exact literal substring of the normalised message and at least 8 chars; Matcher Jaccard 0.6 and 0.4 thresholds, two strong matches go to review, valid updatesRef wins; ConflictDetector half-open overlap, deadlines and closed items never conflict; reschedule bumps version and keeps id; cancel sets cancelled.
+- Non-blocking, added to T16: DateResolver only accepts the listed shapes. Common forms "by Friday", "on Sat", "this Sat", "Sat 25 Oct", "25 October 2026, 6:30pm", "tonight", "noon" resolve to ambiguous and go to Review. Safe, but noisy.
