@@ -1,0 +1,129 @@
+name: Recalled
+
+options:
+  xcodeVersion: "26.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+packages:
+  RecalledCore:
+    path: RecalledCore
+  SCXSwiftKit:
+    url: https://github.com/SouthernCrossAI/SCXSwiftKit.git
+    exactVersion: "1.0.0"
+
+targets:
+  Recalled:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources: [Recalled]
+    configFiles:
+      Debug: Config/App.xcconfig
+      Release: Config/App.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: au.recalled.app
+        TARGETED_DEVICE_FAMILY: "1"
+        SUPPORTS_MACCATALYST: NO
+    dependencies:
+      - package: RecalledCore
+      - package: SCXSwiftKit
+      - target: RecalledShare
+        embed: true
+    info:
+      path: Config/Generated/Recalled-Info.plist
+      properties:
+        CFBundleDisplayName: Recalled
+        SCX_API_KEY: $(SCX_API_KEY)
+        ELEVENLABS_API_KEY: $(ELEVENLABS_API_KEY)
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+    entitlements:
+      path: Config/Generated/Recalled.entitlements
+      properties:
+        com.apple.security.application-groups: [group.au.recalled.app]
+
+  RecalledMac:
+    type: application
+    platform: macOS
+    deploymentTarget: "26.0"
+    sources: [Recalled]
+    configFiles:
+      Debug: Config/App.xcconfig
+      Release: Config/App.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: au.recalled.app.mac
+    dependencies:
+      - package: RecalledCore
+      - package: SCXSwiftKit
+    info:
+      path: Config/Generated/RecalledMac-Info.plist
+      properties:
+        CFBundleDisplayName: Recalled
+        SCX_API_KEY: $(SCX_API_KEY)
+        ELEVENLABS_API_KEY: $(ELEVENLABS_API_KEY)
+        LSApplicationCategoryType: public.app-category.productivity
+    entitlements:
+      path: Config/Generated/RecalledMac.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
+        com.apple.security.application-groups: [group.au.recalled.app]
+
+  RecalledShare:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources: [RecalledShare]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: au.recalled.app.share
+        TARGETED_DEVICE_FAMILY: "1"
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+    dependencies:
+      - package: RecalledCore
+    info:
+      path: Config/Generated/RecalledShare-Info.plist
+      properties:
+        CFBundleDisplayName: Recalled
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsImageWithMaxCount: 1
+    entitlements:
+      path: Config/Generated/RecalledShare.entitlements
+      properties:
+        com.apple.security.application-groups: [group.au.recalled.app]
+
+schemes:
+  Recalled:
+    build:
+      targets:
+        Recalled: all
+    run:
+      config: Debug
+    management:
+      shared: true
+  RecalledMac:
+    build:
+      targets:
+        RecalledMac: all
+    run:
+      config: Debug
+    management:
+      shared: true

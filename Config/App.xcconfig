@@ -1,0 +1,5 @@
+// Empty defaults allow fresh clones and CI to build without service credentials.
+SCX_API_KEY =
+ELEVENLABS_API_KEY =
+
+#include? "../Secrets.xcconfig"
