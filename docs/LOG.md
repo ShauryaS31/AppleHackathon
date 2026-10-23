@@ -51,3 +51,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 15:25 AEDT | T07 | claude | review r2 PASS | core-tests 39899975476 and app-build 39899975400 green; runtime checks added to Mac gate checklist
 - 2026-10-23 15:25 AEDT | T07 | claude | merge | task/T07-store-today merged to main, status done
 - 2026-10-23 15:25 AEDT | T08 | claude | dispatch | round 1 on task/T08-review (gate: app-build CI (core-tests if Core changes))
+- 2026-10-23 15:30 AEDT | T08 | codex | dev-report r1 | Review tab and transactional resolution actions committed as bfed3f2; app-build CI and device checks pending (no Xcode on Windows)
