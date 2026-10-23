@@ -53,6 +53,10 @@ Runtime checks the agents cannot do on Windows. Each review marks them "PENDING 
 | T00 | `xcodebuild -version` shows Xcode 26; device has Apple Intelligence; signing works | [ ] |
 | T01 | Recalled launches on iPhone and RecalledMac on the Mac; placeholder shows on-device model availability | [ ] |
 | T12 | Pseudonymiser on device: names and organisations in the demo data are all replaced (NLTagger quality) | [ ] |
+| T07 | Store files carry NSFileProtectionComplete; data survives relaunch; launch while locked recovers when unlocked | [ ] |
+| T07 | Reset demo twice: 15 items, no duplicates, dates relative to today; tentative and conflict badges render (Sprint check-in conflict) | [ ] |
+| T07 | Detail highlights the excerpt in its bounded context; menu reaches Settings and Ledger | [ ] |
+| T07 | Forget all, then relaunch: everything empty; unprovisioned RecalledMac falls back to the default store and logs once | [ ] |
 
 ## Owner-only work (not for agents)
 - Fri: hardware and accounts (T00), confirm prior-work rule with organisers, find team (iOS dev or designer).
