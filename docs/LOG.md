@@ -37,3 +37,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 14:28 AEDT | T12 | claude | merge | task/T12-pseudonymiser merged to main, status done. Windows-mode run complete (T01 to T04, T12); stopping for owner as instructed
 - 2026-10-23 14:51 AEDT | - | claude | decision | Owner: drop OCR (T09 now share and paste, text only; SPEC 5, 6 M1, 7, 7.1, 7.7, A1 and M2 gate updated), new T04b, T05 split into T05a and T05b (blocked on device), Windows mode continues T04b, T05a, T07, T08, T09, T10; Mac gate checklist added to PLAN. Briefs tightened; old extraction rules and fixtures copied to docs/notes
 - 2026-10-23 14:51 AEDT | T04b | claude | dispatch | round 1 on task/T04b-date-phrases (gate: core-tests CI)
+- 2026-10-23 14:55 AEDT | T04b | codex | dev-report r1 | Common date phrases and 10 new test functions committed as 6870bff; existing tests unchanged; Swift unavailable on Windows, core-tests CI pending
