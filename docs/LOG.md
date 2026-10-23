@@ -18,3 +18,5 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 14:06 AEDT | T01 | claude | merge | task/T01-scaffold merged to main, status done; CLAUDE.md dispatch updated: manager commits for Codex (sandbox .git is read-only)
 - 2026-10-23 13:52 AEDT | T02 | claude | dispatch | round 1 on task/T02-core-models (gate: core-tests CI)
 - 2026-10-23 13:55 AEDT | T02 | codex | dev-report r1 | Core models, Sendable protocols, fakes and 17 tests committed as 577b97f; static checks passed, Swift unavailable on Windows, core-tests CI pending
+- 2026-10-23 13:58 AEDT | - | claude | correction | Timestamps on the T01 review r1 and merge lines (14:05, 14:06) were estimated, not read from the clock; actual times were about 13:50 and 13:51
+- 2026-10-23 13:58 AEDT | T02 | claude | review r1 CHANGES | CI green; 6 fixes: message-level ReviewItem, rename .none cases, lenient SourceMessage decode, PlanItem without UUIDs, throwing fakes, deterministic fake ids

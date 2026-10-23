@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | in_progress |
+| Status | changes_requested |
 | Milestone | M1 |
 | Window | Sat 24 Oct, 10:00 to 10:45 |
 | Depends on | T01 |
@@ -55,3 +55,16 @@ Persistence, UI.
   - Platform isolation: PowerShell scan of every Core Swift file returned `PASS: no forbidden Core imports` for FoundationModels, EventKit, UIKit and SwiftUI.
 - Verify commands run and results: Attempted `swift test --package-path RecalledCore`; PowerShell exited 1 because `swift` is not recognized. This Windows environment has no Swift toolchain or Xcode, so compilation and tests could not run locally; no toolchain installation attempted. Core Swift trailing-whitespace scan passed. `git diff --check` passed for tracked changes at the time of the check (new Swift files were separately scanned).
 - Not done / risks / questions for the manager: `core-tests` must pass on `task/T02-core-models` in GitHub Actions before acceptance. SPEC 7.2 names planning request/response types without prescribing their fields: the request carries pseudonymised ItemRefs and instructions; the response carries a summary and ordered refs, without model-computed dates. Pseudonymisation itself is outside this task. Calendar queries use half-open overlap semantics and preserve insertion order. No outside-scope fixes were made.
+
+## Review (round 1)
+- Date: 2026-10-23 13:58 AEDT
+- Verdict: CHANGES
+- Evidence: core-tests run 39892340530 and app-build run 39892340489 green on task/T02-core-models. Criteria 1 to 4 and the manager additions are met; the fixes below prevent rework in T03, T04, T05, T12 and T13.
+
+Required fixes:
+1. `ReviewItem` (Models.swift) cannot represent a message-level review with no Commitment (over 2,500 tokens, uncertain relevance with zero items, evidence or date failure before a Commitment exists, SPEC 7.4). Make `commitmentId: UUID?` and add `sourceMessageId: String?`; a ReviewItem must have at least one of them (add a failable or precondition-free validating init, your choice, but document it). Add round-trip tests for both shapes.
+2. `ExtractionResult.Relevance.none` and `ExtractionResult.Change.none` collide with `Optional.none` (`x?.relevance == .none` silently matches nil). Rename the cases to `irrelevant` and `noChange`. Keep the Codable raw values `"none"` so the wire format still matches SPEC 7.4. Add a test that decodes `"none"` into each.
+3. `SourceMessage` decoding must not fail when `labels` or `headers` is missing from the JSON (seed data in T07, App Group handoff in T09). Custom `init(from:)` with `decodeIfPresent`, defaulting to empty. Test: decode a JSON object without those keys.
+4. `PseudonymisedPlanRequest` must not reuse `ItemRef`: it would send internal UUIDs and an unscrubbed title to SCX (SPEC 7.5 item 6). Add `PlanItem` (ref like "t3", title, kind, status, dueText, dueStart: Date?, dueEnd: Date?) with no UUID, and use `items: [PlanItem]`. Update tests.
+5. `FakeExtractor` and `FakePlanningModel` need a way to throw a scripted error, so error paths can be tested later. Add a test for each.
+6. `InMemoryCalendarStore.create` returns deterministic ids `fake-1`, `fake-2`, ... instead of random UUIDs. Update tests.
