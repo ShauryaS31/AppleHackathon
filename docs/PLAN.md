@@ -35,7 +35,7 @@ Parallel lanes on Saturday morning: T06 (SCX spike) runs in its own worktree alo
 | [T09](../tasks/T09-share-ocr.md) | Share extension with Vision OCR | M2 | Sat 24 Oct, 14:00 to 15:30 | T07 | codex, then owner on device | todo |
 | [T10](../tasks/T10-eventkit.md) | EventKit conflicts, approved event creation, receipts | M3 | Sat 24 Oct, 15:30 to 17:00 | T08 | codex | todo |
 | [T11](../tasks/T11-notifications.md) | Local notification reminders | M3 | Sat 24 Oct, 16:30 to 18:00 | T10 | codex | todo |
-| [T12](../tasks/T12-pseudonymiser.md) | Pseudonymiser and 'What left my phone' ledger | M4 | Sat 24 Oct, 18:00 to 19:00 | T02 | codex | todo |
+| [T12](../tasks/T12-pseudonymiser.md) | Pseudonymiser and 'What left my phone' ledger | M4 | Sat 24 Oct, 18:00 to 19:00 | T02 | codex | in_progress |
 | [T13](../tasks/T13-plan-week.md) | Plan my week via SCX MAGPiE | M4 | Sat 24 Oct, 19:00 to 20:00 | T06, T12 | codex | todo |
 | [T14](../tasks/T14-voice.md) | ElevenLabs morning briefing | M5 | Sun 25 Oct, 10:00 to 11:00 | T07 | codex, then owner on device | todo |
 | [T15](../tasks/T15-app-intents.md) | App Intents for Siri and Shortcuts | M5 | Sun 25 Oct, 10:30 to 12:00 | T07 | codex | todo |

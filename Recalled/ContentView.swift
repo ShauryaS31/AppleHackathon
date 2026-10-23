@@ -18,15 +18,20 @@ struct ContentView: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text(RecalledPlaceholder.appName)
-                .font(.largeTitle)
-            Text(availabilityDescription)
-                .multilineTextAlignment(.center)
-            Text("Your commitments will appear here.")
-                .foregroundStyle(.secondary)
+        NavigationStack {
+            VStack(spacing: 16) {
+                Text(RecalledPlaceholder.appName)
+                    .font(.largeTitle)
+                Text(availabilityDescription)
+                    .multilineTextAlignment(.center)
+                Text("Your commitments will appear here.")
+                    .foregroundStyle(.secondary)
+                NavigationLink("What left my phone") {
+                    LedgerView(entries: [])
+                }
+            }
+            .padding(32)
         }
-        .padding(32)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 availability = SystemLanguageModel.default.availability
