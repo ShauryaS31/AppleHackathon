@@ -78,3 +78,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 17:00 AEDT | T10 | claude | review r1 CHANGES | app-build failed (calendarRevision setter); 5 fixes incl. update must not wipe location/notes, recover from deleted linked event, all-day drafts never conflict, floating all-day dates
 - 2026-10-23 17:03 AEDT | T10 | codex | dev-report r2 | 641c4d9: addressed all five review fixes (revision setter, preserve Calendar metadata, deleted-event recovery, no all-day overlaps, floating deadline dates); Swift/Xcode unavailable, CI/device gates pending.
 - 2026-10-23 17:06 AEDT | T10 | claude | review r2 PASS | 193 tests green on core-tests 39909312713; app-build 39909312847 green
+- 2026-10-23 17:06 AEDT | T10 | claude | merge | task/T10-eventkit merged to main, status done

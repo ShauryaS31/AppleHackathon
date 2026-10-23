@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | changes_requested |
+| Status | done |
 | Milestone | M3 |
 | Window | Sat 24 Oct, 15:30 to 17:00 |
 | Depends on | T08 |
