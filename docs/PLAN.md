@@ -57,6 +57,8 @@ Runtime checks the agents cannot do on Windows. Each review marks them "PENDING 
 | T07 | Reset demo twice: 15 items, no duplicates, dates relative to today; tentative and conflict badges render (Sprint check-in conflict) | [ ] |
 | T07 | Detail highlights the excerpt in its bounded context; menu reaches Settings and Ledger | [ ] |
 | T07 | Forget all, then relaunch: everything empty; unprovisioned RecalledMac falls back to the default store and logs once | [ ] |
+| T08 | Review tab badge count matches the queue; each action (Confirm, Edit, Dismiss, Mark as same, Create) removes the row and updates Today without relaunch | [ ] |
+| T08 | Edit date picker, date-only toggle and No date option work on iPhone and Mac | [ ] |
 
 ## Owner-only work (not for agents)
 - Fri: hardware and accounts (T00), confirm prior-work rule with organisers, find team (iOS dev or designer).
