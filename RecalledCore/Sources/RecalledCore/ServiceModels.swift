@@ -8,10 +8,11 @@ public struct CalendarEvent: Codable, Sendable, Equatable {
     public var timezone: String
     public var isAllDay: Bool
     public var notes: String?
+    public var location: String?
 
     public init(
         id: String, title: String, start: Date, end: Date, timezone: String,
-        isAllDay: Bool = false, notes: String? = nil
+        isAllDay: Bool = false, notes: String? = nil, location: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -20,6 +21,7 @@ public struct CalendarEvent: Codable, Sendable, Equatable {
         self.timezone = timezone
         self.isAllDay = isAllDay
         self.notes = notes
+        self.location = location
     }
 }
 
@@ -31,10 +33,11 @@ public struct EventDraft: Codable, Sendable, Equatable {
     public var timezone: String
     public var isAllDay: Bool
     public var notes: String?
+    public var location: String?
 
     public init(
         title: String, start: Date, end: Date, timezone: String,
-        isAllDay: Bool = false, notes: String? = nil
+        isAllDay: Bool = false, notes: String? = nil, location: String? = nil
     ) {
         self.title = title
         self.start = start
@@ -42,6 +45,7 @@ public struct EventDraft: Codable, Sendable, Equatable {
         self.timezone = timezone
         self.isAllDay = isAllDay
         self.notes = notes
+        self.location = location
     }
 }
 

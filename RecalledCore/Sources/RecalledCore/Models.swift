@@ -157,7 +157,7 @@ public struct LedgerEntry: Codable, Sendable, Equatable {
 
 public struct ActionReceipt: Codable, Sendable, Equatable {
     public enum Action: String, Codable, Sendable, Equatable, CaseIterable {
-        case createEvent, createReminder
+        case createEvent, updateEvent, createReminder
     }
 
     public var commitmentId: UUID

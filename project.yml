@@ -45,6 +45,7 @@ targets:
       path: Config/Generated/Recalled-Info.plist
       properties:
         CFBundleDisplayName: Recalled
+        NSCalendarsFullAccessUsageDescription: Recalled checks for calendar conflicts and saves events only when you approve them.
         SCX_API_KEY: $(SCX_API_KEY)
         ELEVENLABS_API_KEY: $(ELEVENLABS_API_KEY)
         UILaunchScreen: {}
@@ -80,6 +81,7 @@ targets:
       path: Config/Generated/RecalledMac-Info.plist
       properties:
         CFBundleDisplayName: Recalled
+        NSCalendarsFullAccessUsageDescription: Recalled checks for calendar conflicts and saves events only when you approve them.
         SCX_API_KEY: $(SCX_API_KEY)
         ELEVENLABS_API_KEY: $(ELEVENLABS_API_KEY)
         LSApplicationCategoryType: public.app-category.productivity
@@ -88,6 +90,7 @@ targets:
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.network.client: true
+        com.apple.security.personal-information.calendars: true
         com.apple.security.application-groups: [group.au.recalled.app]
 
   RecalledShare:

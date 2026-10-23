@@ -73,3 +73,8 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 16:45 AEDT | T07b | codex | dev-report r1 | 254a820: added confirmed No date agenda section, pure filter with five tests and undated demo seed; Swift/Xcode unavailable on Windows, CI and device checks pending
 - 2026-10-23 16:49 AEDT | T07b | claude | review r1 PASS | core-tests 39907633419 and app-build 39907633400 green
 - 2026-10-23 16:49 AEDT | T07b | claude | merge | task/T07b-no-date-section merged to main, status done
+- 2026-10-23 16:49 AEDT | T10 | claude | dispatch | round 1 on task/T10-eventkit (gate: core-tests and app-build CI)
+- 2026-10-23 16:56 AEDT | T10 | codex | dev-report r1 | Implemented EventKit approval, 14-day conflicts, linked updates, receipts and Core tests; Swift/Xcode unavailable, CI/device checks pending; uncommitted because git index.lock creation was denied, manager commits.
+- 2026-10-23 17:00 AEDT | T10 | claude | review r1 CHANGES | app-build failed (calendarRevision setter); 5 fixes incl. update must not wipe location/notes, recover from deleted linked event, all-day drafts never conflict, floating all-day dates
+- 2026-10-23 17:03 AEDT | T10 | codex | dev-report r2 | 641c4d9: addressed all five review fixes (revision setter, preserve Calendar metadata, deleted-event recovery, no all-day overlaps, floating deadline dates); Swift/Xcode unavailable, CI/device gates pending.
+- 2026-10-23 17:06 AEDT | T10 | claude | review r2 PASS | 193 tests green on core-tests 39909312713; app-build 39909312847 green

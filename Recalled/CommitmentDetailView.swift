@@ -4,15 +4,21 @@ import SwiftData
 import SwiftUI
 
 struct CommitmentDetailView: View {
+    let store: AppStore
     let commitment: StoredCommitment
-    let conflicts: [ConflictDetector.Conflict]
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var conflicts: [ConflictDetector.Conflict] = []
+    @State private var calendarError: String?
+    @State private var actionError: String?
+    @State private var preview: CalendarPreview?
+    @State private var isPreparing = false
     @Query private var evidence: [StoredEvidence]
     @Query private var reviews: [StoredReviewItem]
     @Query private var receipts: [StoredActionReceipt]
 
-    init(commitment: StoredCommitment, conflicts: [ConflictDetector.Conflict]) {
+    init(store: AppStore, commitment: StoredCommitment) {
+        self.store = store
         self.commitment = commitment
-        self.conflicts = conflicts
         let id = commitment.id
         _evidence = Query(filter: #Predicate<StoredEvidence> { $0.commitmentId == id },
                           sort: \StoredEvidence.capturedAt)
@@ -44,8 +50,32 @@ struct CommitmentDetailView: View {
                 LabeledContent("Version", value: String(commitment.version))
                 if let id = commitment.calendarEventId { LabeledContent("Calendar event", value: id) }
             }
+            Section("Calendar") {
+                if commitment.status == .confirmed {
+                    Button(commitment.calendarEventId == nil ? "Add to Calendar" : "Update Calendar event") {
+                        Task { await preparePreview() }
+                    }
+                    .disabled(isPreparing || store.isWritingCalendar || store.pendingCalendarReceipt != nil)
+                    if isPreparing { ProgressView("Checking calendar…") }
+                } else {
+                    Text("Confirm this item in Review before adding it to Calendar.")
+                        .foregroundStyle(.secondary)
+                }
+                if store.pendingCalendarReceipt != nil {
+                    Text("An event was saved. Its receipt still needs saving.")
+                    Button("Retry saving receipt") {
+                        do { try store.savePendingCalendarReceipt(); actionError = nil }
+                        catch { actionError = error.localizedDescription }
+                    }
+                }
+                if let actionError { Text(actionError).foregroundStyle(.red) }
+                if let calendarError {
+                    Text(calendarError).foregroundStyle(.secondary)
+                    Button("Retry conflict check") { Task { await refreshConflicts() } }
+                }
+            }
             if !conflicts.isEmpty {
-                Section("Calendar conflicts") {
+                Section("Calendar conflicts · next 14 days") {
                     ForEach(conflicts.indices, id: \.self) { index in
                         let event = conflicts[index].event
                         VStack(alignment: .leading, spacing: 4) {
@@ -90,7 +120,7 @@ struct CommitmentDetailView: View {
                 Section("Actions") {
                     ForEach(receipts) { receipt in
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(receipt.action == .createEvent ? "Create event" : "Create reminder")
+                            Text(receiptTitle(receipt.action))
                             Text(receipt.result)
                             Text(receipt.providerId).font(.caption).foregroundStyle(.secondary)
                         }
@@ -100,6 +130,55 @@ struct CommitmentDetailView: View {
         }
         .textSelection(.enabled)
         .navigationTitle(commitment.title)
+        .sheet(item: $preview) { value in
+            CalendarApprovalView(store: store, preview: value)
+        }
+        .task(id: refreshKey) { await refreshConflicts() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await refreshConflicts() } }
+        }
+    }
+
+    private struct RefreshKey: Equatable {
+        let commitment: Commitment
+        let revision: Int
+    }
+
+    private var refreshKey: RefreshKey {
+        RefreshKey(commitment: commitment.toCore(), revision: store.calendarRevision)
+    }
+
+    @MainActor private func refreshConflicts() async {
+        let key = refreshKey
+        let start = Calendar.current.startOfDay(for: .now)
+        guard let end = Calendar.current.date(byAdding: .day, value: 14, to: start) else { return }
+        do {
+            let events = try await store.calendarStore.events(in: DateInterval(start: start, end: end))
+            guard !Task.isCancelled, key == refreshKey else { return }
+            conflicts = ConflictDetector.conflicts(commitments: [key.commitment], calendarEvents: events)
+            calendarError = nil
+        } catch {
+            guard !Task.isCancelled, key == refreshKey else { return }
+            conflicts = []
+            calendarError = error.localizedDescription
+        }
+    }
+
+    @MainActor private func preparePreview() async {
+        guard !isPreparing else { return }
+        isPreparing = true
+        actionError = nil
+        defer { isPreparing = false }
+        do { preview = try await store.calendarPreview(for: commitment.toCore()) }
+        catch { actionError = error.localizedDescription }
+    }
+
+    private func receiptTitle(_ action: ActionReceipt.Action) -> String {
+        switch action {
+        case .createEvent: "Create event"
+        case .updateEvent: "Update event"
+        case .createReminder: "Create reminder"
+        }
     }
 
     private var statusDescription: String {
