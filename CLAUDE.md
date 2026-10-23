@@ -19,6 +19,9 @@ Follow the loop in `docs/FACTORY.md` exactly. Summary:
    Flags checked on codex-cli 0.163.0 (T00). The workspace-write sandbox sometimes keeps .git read-only (`--add-dir .git` does not help); when the developer could not commit, the manager stages and commits each round with the developer's message, noting "committed by manager".
    The owner watches in the right-hand pane with `tail -f logs/current.log` (PowerShell: `Get-Content logs/current.log -Wait -Tail 50`).
    If the owner says "interactive mode", follow "Interactive mode" in docs/FACTORY.md instead.
+   One codex process at a time, unless each runs in its own git worktree (FACTORY.md "Parallel work").
+   After each round, before reviewing: check for leftover developer processes with `Get-CimInstance Win32_Process -Filter "Name='codex.exe'" | Where-Object CommandLine -match ' exec '`. Stop only `codex exec` processes this dispatch started; never stop `codex app-server` or other codex processes, they belong to the owner's other Codex sessions. If the dispatch wrapper died but its `codex exec` is still running, the round is not interrupted: wait for it to exit (lesson from T09 round 2).
+   If a round really is interrupted (its codex exec has exited without a Dev Report): save the work with `git diff > logs/Txx-rN-partial.patch` (plus `git status` for untracked files), discard it on the task branch only (`git restore .` and `git clean -fd`), log it, then redispatch a clean round that may read the patch for reference but must not apply it blindly.
 6. When it exits, review (use a subagent for diffs over about 300 lines). Run the verify commands yourself. Write `## Review (round n)` in the task file: verdict PASS or CHANGES, then numbered, specific fixes.
 7. PASS: `git checkout main && git merge --no-ff task/Txx-slug`, push, status `done`, LOG entry.
    CHANGES: status `changes_requested`, dispatch a new developer process with: "Address Review (round n) in tasks/Txx-*.md."
