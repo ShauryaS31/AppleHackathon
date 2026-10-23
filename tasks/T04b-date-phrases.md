@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | in_progress |
+| Status | done |
 | Milestone | M1 |
 | Window | Fri 23 Oct (Windows mode) |
 | Depends on | T04 |
