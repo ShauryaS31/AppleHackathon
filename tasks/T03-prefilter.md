@@ -16,15 +16,15 @@ Cut most messages before they reach the model, and shrink the rest.
 AGENTS.md; docs/SPEC.md: SPEC 7, step 0 and 1; 7.4 input budget
 
 ## Acceptance criteria
-- [ ] `Normaliser` collapses whitespace, strips HTML tags, removes tracking URLs over 200 chars
-- [ ] `QuoteStripper` removes quoted reply history (lines starting with '>' and blocks after 'On ... wrote:' in English) and common signatures ('-- ', 'Sent from my iPhone')
-- [ ] `Prefilter.decide(message)` returns skip, model, or review. Skip when: Gmail labels include SPAM, TRASH, DRAFT, CATEGORY_PROMOTIONS, CATEGORY_SOCIAL; or a List-Unsubscribe header is present and NSDataDetector finds no date; or no date signal and no request phrase (list of about 20 phrases like 'can you', 'please', 'due', 'deadline', 'remind', 'rsvp')
-- [ ] Review when stripped text exceeds about 2,500 tokens (estimate 4 chars per token)
-- [ ] At least 15 unit tests with realistic fixtures, including a newsletter, a ticket email, a WhatsApp-style text and a long thread
+- [x] `Normaliser` collapses whitespace, strips HTML tags, removes tracking URLs over 200 chars
+- [x] `QuoteStripper` removes quoted reply history (lines starting with '>' and blocks after 'On ... wrote:' in English) and common signatures ('-- ', 'Sent from my iPhone')
+- [x] `Prefilter.decide(message)` returns skip, model, or review. Skip when: Gmail labels include SPAM, TRASH, DRAFT, CATEGORY_PROMOTIONS, CATEGORY_SOCIAL; or a List-Unsubscribe header is present and NSDataDetector finds no date; or no date signal and no request phrase (list of about 20 phrases like 'can you', 'please', 'due', 'deadline', 'remind', 'rsvp')
+- [x] Review when stripped text exceeds about 2,500 tokens (estimate 4 chars per token)
+- [x] At least 15 unit tests with realistic fixtures, including a newsletter, a ticket email, a WhatsApp-style text and a long thread
 
 ### Added by manager (2026-10-23)
-- [ ] `Prefilter.decide` reads Gmail labels and headers from `SourceMessage.labels` and `SourceMessage.headers` (header name match is case insensitive)
-- [ ] The request phrase list is a single public static array so it can be tuned in one place
+- [x] `Prefilter.decide` reads Gmail labels and headers from `SourceMessage.labels` and `SourceMessage.headers` (header name match is case insensitive)
+- [x] The request phrase list is a single public static array so it can be tuned in one place
 
 ## Windows mode
 The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code and tests carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `core-tests` must be green on `task/T03-prefilter`.
@@ -54,3 +54,11 @@ Model calls.
 - Verify commands run and results: Attempted `swift test --package-path RecalledCore`; PowerShell returned CommandNotFoundException because Swift is unavailable. No Swift compilation or tests ran, and no toolchain was installed. `git diff --check` passed for tracked changes at the time of the check. Separate PowerShell static checks of all four new Swift files found no trailing whitespace or forbidden Core imports.
 - Not done / risks / questions for the manager: GitHub Actions `core-tests` must be green on `task/T03-prefilter`; compilation and actual Apple date-detector behaviour remain unverified locally. Label exclusions take precedence over the input budget; all other oversized inputs go to Review before content-based skip rules, preserving long messages without truncation. HTML cleanup is a lightweight text transformation rather than a full HTML parser, and English reply markers are recognised on a single line. No changes outside T03 implementation and completion records.
 - Commit result: `git add` succeeded and `git diff --cached --check` passed, but `git commit -m "T03: add message normalisation and rules prefilter"` failed with `fatal: Unable to create 'C:/Users/User/Desktop/projects/AppleHackathon/.git/index.lock': Permission denied`. Everything remains uncommitted because the sandbox prevents the required Git write. The manager must stage the final report/log updates, commit, push and check CI. Stopped without retrying or changing permissions.
+
+## Review (round 1)
+- Date: 2026-10-23 14:10 AEDT
+- Verdict: PASS
+- Evidence: core-tests run 39893355458 and app-build run 39893355418 green on task/T03-prefilter. 38 tests in PrefilterTests.swift, including newsletter, ticket, WhatsApp-style and long-thread fixtures.
+- Checked: label skip before all other rules; List-Unsubscribe matched case insensitively and skipped only without a date; request phrases in one public array with word-boundary matching; budget 10,000 chars (2,500 tokens at 4 chars per token) measured on subject plus stripped body; quoted history and signatures cannot supply signals.
+- Non-blocking: "On ... wrote:" is only recognised on one line; Gmail sometimes wraps it across two. Revisit if T05 benchmark shows quoted history leaking.
+- Process: Codex could not commit (.git read-only); the manager commit "T03: log dev report (committed by manager)" contains the whole round.

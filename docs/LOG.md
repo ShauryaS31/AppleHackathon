@@ -25,3 +25,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 14:03 AEDT | T02 | claude | merge | task/T02-core-models merged to main, status done
 - 2026-10-23 14:03 AEDT | T03 | claude | dispatch | round 1 on task/T03-prefilter (gate: core-tests CI)
 - 2026-10-23 14:06 AEDT | T03 | codex | dev-report r1 | Normaliser, quote/signature stripper, rules prefilter and 38 tests written; Swift unavailable, core-tests CI pending; commit blocked by sandbox index.lock permission denial, manager commits
+- 2026-10-23 14:10 AEDT | T03 | claude | review r1 PASS | 38 tests green on core-tests 39893355458; app-build green
