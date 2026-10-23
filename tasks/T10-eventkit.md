@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | in_progress |
+| Status | changes_requested |
 | Milestone | M3 |
 | Window | Sat 24 Oct, 15:30 to 17:00 |
 | Depends on | T08 |
@@ -66,3 +66,15 @@ Reminders app integration.
   - Apple API references checked: [full-access request](https://developer.apple.com/documentation/eventkit/ekeventstore/requestfullaccesstoevents%28completion%3A%29), [EventKit store access and entitlement](https://developer.apple.com/documentation/eventkit/accessing-the-event-store), [authorization status](https://developer.apple.com/documentation/EventKit/EKAuthorizationStatus).
 - Not done / risks / questions for the manager: Windows has no Swift toolchain or Xcode; neither was installed. Manager must run/push the `core-tests` and `app-build` gates on `task/T10-eventkit` and add the PENDING DEVICE cases above to the Mac gate checklist. EventKit and SwiftData cannot share a transaction: receipt retry prevents duplicate writes within the running process, but process termination between an external save and local persistence can leave an unlinked event. External Calendar changes can also occur after the final fetch because EventKit offers no atomic conflict-check-and-save. No reminders integration, extraction changes, protected planning/spec edits, merge, or next task was attempted.
 - Commit outcome: `git add` returned success, but `git commit -m "T10: add approved EventKit writes, conflicts, and receipts"` failed with `fatal: Unable to create 'C:/Users/User/Desktop/projects/AppleHackathon/.git/index.lock': Permission denied`. All T10 changes are uncommitted; the manager must stage the final report/log updates and commit. Stopping as instructed; no sandbox workaround attempted.
+
+## Review (round 1)
+- Date: 2026-10-23 17:00 AEDT
+- Verdict: CHANGES
+- Evidence: core-tests run 39908678949 green; app-build run 39908678976 FAILED: `Recalled/Persistence/CalendarActions.swift:70:26: error: left side of mutating operator isn't mutable: 'calendarRevision' setter is inaccessible`. Otherwise every criterion is met on reading: full-access flow, 14-day conflicts, exact preview before write, recheck with refreshed preview, update of the linked event, receipts only on success, no attendees, Core update and optional location with tests, plist and Mac entitlement, DEBUG-only in-memory switch (RECALLED_DEMO_CALENDAR=1), all-day for date-only deadlines.
+
+Required fixes:
+1. Fix the build: `calendarRevision` in AppStore is `private(set)`; expose a small AppStore method (for example `noteCalendarChanged()`) instead of mutating it from the extension. app-build must be green.
+2. EventKitCalendarStore.swift `apply` (lines 111 to 112): on update it overwrites `location` and `notes` with the draft's nil, silently deleting what the user added in Calendar, and the preview does not say so (SPEC 7.5 item 4). On update, only set location and notes when the draft value is non-nil.
+3. A linked event deleted in Calendar is a dead end: `missingEvent` throws but `calendarEventId` stays set and the button keeps failing. On `missingEvent`, unlink the id and show the normal create preview; writing still needs the user's approval and creates a new receipt.
+4. CalendarAction.swift `overlaps`: all-day deadline drafts are treated as 24 hour events and flag every event that day, contradicting ConflictDetector (deadlines never conflict). Return no overlaps for `isAllDay` drafts; update `calendarApprovalChecksAllDayDeadlineBlock`.
+5. All-day events: build the start from the deadline's year, month and day in the user's current calendar and set `event.timeZone = nil` for all-day events (floating), so the date never shifts when the commitment's stored zone differs from the device zone (possible since T04c stores source zones). Add a Core test for the date components used.
