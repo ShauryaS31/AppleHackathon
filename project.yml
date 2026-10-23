@@ -23,7 +23,11 @@ targets:
     type: application
     platform: iOS
     deploymentTarget: "26.0"
-    sources: [Recalled]
+    sources:
+      - path: Recalled
+        excludes: [Resources]
+      - path: Recalled/Resources
+        buildPhase: resources
     configFiles:
       Debug: Config/App.xcconfig
       Release: Config/App.xcconfig
@@ -57,7 +61,11 @@ targets:
     type: application
     platform: macOS
     deploymentTarget: "26.0"
-    sources: [Recalled]
+    sources:
+      - path: Recalled
+        excludes: [Resources]
+      - path: Recalled/Resources
+        buildPhase: resources
     configFiles:
       Debug: Config/App.xcconfig
       Release: Config/App.xcconfig
