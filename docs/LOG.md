@@ -46,3 +46,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 15:07 AEDT | T05a | claude | merge | task/T05a-instructions-benchmark merged to main, status done
 - 2026-10-23 15:07 AEDT | T07 | claude | dispatch | round 1 on task/T07-store-today (gate: app-build CI (core-tests if Core changes))
 - 2026-10-23 15:15 AEDT | T07 | codex | dev-report r1 | Persisted agenda, evidence detail, 15-item demo, Settings deletion and Ledger query committed as 31ab7a7; app-build CI and device checks pending (no Xcode on Windows)
+- 2026-10-23 15:17 AEDT | T07 | claude | review r1 CHANGES | CI green; 6 fixes: toolbar navigation, bounded evidence context (no full bodies), raw-string enums for predicates, message-level review fields, single ingest API, auto-retry store open

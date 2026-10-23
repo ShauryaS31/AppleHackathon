@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | in_progress |
+| Status | changes_requested |
 | Milestone | M2 |
 | Window | Sat 24 Oct, 12:30 to 14:00 |
 | Depends on | T05a |
@@ -68,3 +68,18 @@ Share extension, EventKit.
   - PowerShell source audit: passed with ModelClasses=5, CoreMappings=5, SeedItems=15, TentativeItems=3, DateOnlyDeadlines=2, ReviewItems=1, CalendarFixtures=3, DeletedEntityTypes=5, BodyProperties=0. These are source checks, not Swift compilation or runtime tests.
 - Not done / risks / questions for the manager: Windows has no Swift/Xcode; no Swift tests, app builds or device checks passed locally. The manager must push `task/T07-store-today` and require `app-build` green for both apps. Core was unchanged. Please add the PENDING DEVICE checks above to the Mac gate checklist, including database/mapping round trips, reset twice, evidence highlighting, conflict badges, unprovisioned Mac fallback, persisted ledger rows, Forget all followed by relaunch, and iPhone file protection/lock behavior. Data Protection complete is iOS-specific; the native Mac build does not use that iOS entitlement/API. Review resolution, ingestion, Share extension and EventKit remain outside T07. Protected project documents were not edited.
 - Commit/log outcome: Git staging succeeded in this sandbox. Requested commit message: `T07: Add persisted agenda, evidence detail and demo store`. The LOG line follows the implementation commit, per the task instructions.
+
+## Review (round 1)
+- Date: 2026-10-23 15:17 AEDT
+- Verdict: CHANGES
+- Evidence: core-tests run 39899357316 and app-build run 39899357243 green on task/T07-store-today (compiles on both targets). All six original criteria and the manager additions are met on reading; the fixes below are runtime and data-shape problems a compile check cannot catch, and are cheapest to fix before any data is installed.
+
+Required fixes:
+1. ContentView.swift toolbar `Menu`: `NavigationLink`s inside a toolbar Menu often do not push (iOS and macOS), which would make Settings ("Forget all") and the Ledger unreachable. Use Buttons that set state and push with `.navigationDestination(isPresented:)` or a `NavigationPath`.
+2. StoredModels.swift `StoredEvidence.contextBefore/contextAfter`: 120 characters per side stores the whole body of any short WhatsApp message, which SPEC 7.3 forbids. Rule: at most 40 characters per side, cut at a word boundary, and store no context at all when the body is shorter than excerpt + 80 characters. Put the rule in one function with a unit-testable signature (pure Swift, no SwiftData), and use it for seed data too.
+3. Store `kind`, `status` and receipt `action` as raw `String` properties (`statusRaw` etc.) with computed enum accessors, so T08 and T09 can use `#Predicate` on them. Update Today's queries.
+4. `StoredReviewItem` must be displayable without a commitment (message-level review from T02): add `sender: String`, `excerpt: String` (bounded by fix 2's rule), `createdAt: Date`, all with defaults.
+5. `AppStore` gets one write API, `ingest(commitments:evidence:reviewItems:)` (insert or update by id, one save), so T09 and T08 never write to `mainContext` directly.
+6. RecalledApp.swift: when opening the store fails (for example a launch while the device is locked with complete protection), retry automatically when the scene becomes active, not only through the "Try again" button.
+
+PENDING DEVICE (to the Mac gate checklist after PASS): store files carry NSFileProtectionComplete; data survives relaunch; Reset demo twice gives 15 items, no duplicates, dates relative to today; badges including the Sprint check-in conflict render; excerpt highlight in Detail; menu reaches Settings and Ledger; Forget all then relaunch is empty; unprovisioned RecalledMac falls back and logs once.
