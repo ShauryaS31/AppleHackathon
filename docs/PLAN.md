@@ -65,6 +65,7 @@ Runtime checks the agents cannot do on Windows. Each review marks them "PENDING 
 | T09 | Share from Messages, Slack and Mail is accepted; one Safari URL accepted; two URLs or an image do not activate the extension | [ ] |
 | T09 | Paste message on iPhone and RecalledMac (also with an empty clipboard); data-protection entitlement signs on device | [ ] |
 | T09 | Kill the app mid-import, relaunch: file kept and imported once; Forget all removes pending Inbox files | [ ] |
+| T07b | After Reset demo, Today shows a No date section with Send revised proposal below Today and Tomorrow; confirming a dateless review item makes it appear there | [ ] |
 
 ## Owner-only work (not for agents)
 - Fri: hardware and accounts (T00), confirm prior-work rule with organisers, find team (iOS dev or designer).
