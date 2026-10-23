@@ -55,3 +55,6 @@ Parallel lanes on Saturday morning: T06 (SCX spike) runs in its own worktree alo
 | 2026-10-23 | Build Recalled as native iOS 26 app; on-device extraction with Foundation Models; SCX MAGPiE for planning only | Shaurya |
 | 2026-10-23 | Claude Code manages and reviews; Codex gpt-6-astra develops; one fresh codex exec per task round | Shaurya |
 | 2026-10-23 | XcodeGen project.yml instead of committed .pbxproj, so agents edit YAML not project files | Manager |
+| 2026-10-23 | Zero budget and stay native Swift. Repo made public (history checked for secrets first) so GitHub Actions macOS runners are free | Shaurya |
+| 2026-10-23 | Windows mode: run T01, T02, T03, T04, T12 in that order now, each gated by a green GitHub Actions `core-tests` run on the task branch (no local Swift on Windows). Stop after T12. T01 also adds an `app-build` CI job (xcodegen + xcodebuild, unsigned) so app code gets compile checked; required for tasks that touch app code (T01, T12) | Shaurya, Manager |
+| 2026-10-23 | T01 adds a native macOS 26 target `RecalledMac` (same app sources, no share extension) as the fallback demo device on an Apple silicon Mac | Shaurya |

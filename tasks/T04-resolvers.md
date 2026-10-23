@@ -23,6 +23,14 @@ AGENTS.md; docs/SPEC.md: SPEC 7.4 rules; 8 (A2 to A6, A11)
 - [ ] Applying a reschedule bumps version and keeps the id (A3); cancel sets status cancelled (A4)
 - [ ] Unit tests for each scenario named above, with fixed time zone Australia/Sydney
 
+### Added by manager (2026-10-23)
+- [ ] `DateResolver` returns an enum with cases for exact interval (`DateInterval`), date-only deadline (a day in the given time zone) and ambiguous. A time with no end gets a default 1 hour interval. '25/10' is 25 October, never month 25
+- [ ] `Matcher` rule: lowercase, strip punctuation, token-set Jaccard similarity on titles. At least 0.6 to one existing item is a match; between 0.4 and 0.6, or 0.6 or more to two items, returns review; below 0.4 is new. A valid `updatesRef` always wins over title similarity
+- [ ] Tests use a fixed `sentAt` and `TimeZone(identifier: "Australia/Sydney")`, never the current clock
+
+## Windows mode
+The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code and tests carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `core-tests` must be green on `task/T04-resolvers`.
+
 ## Verify
 ```
 swift test --package-path RecalledCore

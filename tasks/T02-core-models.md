@@ -21,6 +21,15 @@ AGENTS.md; docs/SPEC.md: SPEC 7.2, 7.3
 - [ ] Fakes: FakeExtractor (returns scripted results), InMemoryCalendarStore, FakePlanningModel (configurable regions), SilentSpeech
 - [ ] All types Codable, Sendable, Equatable; unit tests cover Codable round trip and fake behaviour
 
+### Added by manager (2026-10-23)
+- [ ] Also define the types the SPEC 7.2 protocols reference: `ExtractionResult` (items plus a relevance flag), `PseudonymisedPlanRequest`, `PlanResponse`
+- [ ] `SourceMessage` also carries `labels: [String]` (Gmail label ids, empty for share and seed) and `headers: [String: String]` (empty when unknown), so T03 can prefilter without changing this type
+- [ ] `Commitment.Status` raw values match SPEC 7.3 exactly: candidate, tentative, confirmed, completed, cancelled, superseded, needsReview. `Commitment.Kind`: event, deadline, commitment
+- [ ] No file in RecalledCore imports FoundationModels, EventKit, UIKit or SwiftUI
+
+## Windows mode
+The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code and tests carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `core-tests` must be green on `task/T02-core-models`.
+
 ## Verify
 ```
 swift test --package-path RecalledCore

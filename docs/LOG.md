@@ -10,3 +10,5 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 13:28 AEDT | T00 | codex | dev-report r1 | Dummy round trip: developer process can read the repo, write a file and commit
 - 2026-10-23 13:30 AEDT | T00 | claude | review r1 PASS | Manager items done: codex flags valid, dummy round trip committed b588bd4; owner items open
 - 2026-10-23 13:31 AEDT | T00 | claude | merge | task/T00-factory-check merged to main (--no-ff); T00 set blocked pending owner items (Xcode, device, signing, keys, organiser confirmation)
+- 2026-10-23 13:29 AEDT | - | claude (cowork) | decision | Codex output streamed to logs/current.log for live viewing; interactive tmux mode and manual relay documented in FACTORY.md
+- 2026-10-23 13:45 AEDT | - | claude | decision | Owner: zero budget, native Swift, repo public, Windows mode T01>T02>T03>T04>T12 gated by GitHub Actions core-tests (plus app-build for app code), RecalledMac fallback target; stop after T12. Briefs T01 to T04 and T12 tightened for Windows mode

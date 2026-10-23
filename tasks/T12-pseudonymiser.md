@@ -21,6 +21,13 @@ AGENTS.md; docs/SPEC.md: SPEC 7.5 item 6; 8 (A9)
 - [ ] Unit tests: round trip, same name gets same placeholder, no original value left in output for 10 fixtures
 - [ ] Ledger screen lists LedgerEntry rows with time, model id, regions, byte count and the exact redacted payload
 
+### Added by manager (2026-10-23)
+- [ ] Placeholders are numbered per type in order of first appearance and reused for repeats within one call; the returned map is placeholder to original
+- [ ] The Ledger screen is a SwiftUI view in `Recalled/` that takes `[LedgerEntry]` (sample data is fine; the SCX call is out of scope) and compiles on both `Recalled` and `RecalledMac`
+
+## Windows mode
+The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code and tests carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `core-tests` and `app-build` must be green on `task/T12-pseudonymiser`.
+
 ## Verify
 ```
 swift test --package-path RecalledCore

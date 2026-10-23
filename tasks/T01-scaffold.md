@@ -25,11 +25,24 @@ AGENTS.md; docs/SPEC.md: SPEC 7.1, 7.6
 - [ ] `.gitignore` covers Xcode, DerivedData, xcuserdata, Secrets.xcconfig, .DS_Store
 - [ ] README section: how to generate the project (`brew install xcodegen && xcodegen`) and run
 
+### Added by manager (2026-10-23, Windows mode and Mac fallback)
+- [ ] `project.yml` also defines `RecalledMac`: a native macOS 26 app target (not Catalyst) that compiles the same `Recalled/` sources, depends on RecalledCore and SCXSwiftKit, and does not embed RecalledShare. iOS-only code is wrapped in `#if os(iOS)`. Same placeholder screen works on both
+- [ ] Both app targets read build settings from `Config/App.xcconfig`, which does `#include? "../Secrets.xcconfig"` (optional include) so the project generates and builds when the secrets file is missing (CI, fresh clones)
+- [ ] `RecalledCore/Package.swift`: swift-tools-version 6.0, platforms `.iOS(.v18), .macOS(.v15)` so `swift test` runs on any current GitHub macOS runner
+- [ ] `.github/workflows/core-tests.yml`: triggers on push to any branch and on pull_request; `runs-on: macos-26`; prints `xcodebuild -version` and `swift --version`; runs `swift test --package-path RecalledCore`
+- [ ] `.github/workflows/app-build.yml`: same triggers and runner; `brew install xcodegen`; `xcodegen`; then two builds with `CODE_SIGNING_ALLOWED=NO`: `xcodebuild -scheme Recalled -destination 'generic/platform=iOS Simulator' build` and `xcodebuild -scheme RecalledMac -destination 'generic/platform=macOS' build`
+- [ ] `project.yml` generates shared schemes named `Recalled` and `RecalledMac`
+
+## Windows mode
+The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `core-tests` and `app-build` must both be green on `task/T01-scaffold`.
+
 ## Verify
 ```
 swift test --package-path RecalledCore
 xcodegen && xcodebuild -scheme Recalled -destination 'generic/platform=iOS Simulator' build
+xcodebuild -scheme RecalledMac -destination 'generic/platform=macOS' build
 ```
+In Windows mode: the GitHub Actions runs on the task branch.
 
 ## Out of scope
 Any feature logic.
