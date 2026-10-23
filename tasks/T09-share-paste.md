@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | in_progress |
+| Status | changes_requested |
 | Milestone | M2 |
 | Window | Sat 24 Oct, 14:00 to 15:30 |
 | Depends on | T07 |
@@ -63,3 +63,19 @@ Gmail, OCR, Foundation Models (T05b).
 - Verify commands run and results: `git diff --check` passed. PowerShell static source checks passed (Core import boundaries, no Vision, text/URL activation, no model in extension, protected atomic write, no action capability in pipeline); counted 22 pipeline test declarations. Tool discovery confirmed `swift`, `xcodegen`, and `xcodebuild` are unavailable. Consequently `swift test --package-path RecalledCore`, `xcodegen && xcodebuild -scheme Recalled -destination 'generic/platform=iOS Simulator' build`, and `xcodebuild -scheme RecalledMac -destination 'generic/platform=macOS' build` could not be run locally. No toolchain was installed and no test/build pass is claimed. Manager must push and require green `core-tests` and `app-build` on `task/T09-share-paste`.
 - Not done / risks / questions for the manager: Owner must check real WhatsApp text sharing in airplane mode, exact Review excerpt/reason, web URL sharing, empty clipboard, Mac paste, failed-save retry, and duplicate prevention after a saved file cannot be deleted. Actual extraction remains pending T05b as required. A4 Core cancellation is covered; provider/reminder removal is not implemented because this repository has no reminder action layer yet. No out-of-scope provider work was added.
 - Commit: Blocked by the read-only `.git` sandbox. The staging attempt failed with `fatal: Unable to create 'C:/Users/User/Desktop/projects/AppleHackathon/.git/index.lock': Permission denied`. All T09 changes are left uncommitted for the manager; intended commit message: `T09: Add text share and paste ingestion pipeline`. Stopping as instructed.
+
+## Review (round 1)
+- Date: 2026-10-23 15:50 AEDT
+- Verdict: CHANGES
+- Evidence: core-tests run 39902238583 green; app-build run 39902238399 FAILED: `Recalled/Persistence/InboxImport.swift:78:24: error: the compiler is unable to type-check this expression in reasonable time`. Bodies are not persisted, inbox writes are atomic, files are deleted only after save, the extension runs no model and has no Vision import, PendingModelExtractor is the single swap point.
+
+Required fixes:
+1. InboxImport.swift:78: break the `existing` fetch/map/filter/sort chain into typed steps (explicit closure types or a small helper) so the app builds. app-build must be green.
+2. InboxPipeline.swift, `.new` with `Matcher` returning `.match(id)` (valid updatesRef or strong title match) currently creates a duplicate (breaks A3). Treat it as review linked to the matched item (reason "possible duplicate"); do not create a second commitment. Test with change new, updatesRef "t1" and an existing item.
+3. InboxPipeline.swift:122: the tentative override runs after cancel and completed, so an uncertain "cancelled" message turns a confirmed item tentative and the cancel is lost (A4); `.noChange` with uncertain relevance also downgrades a confirmed matched item. Rule: for cancelled, completed or matched no-change items that are tentative or uncertain, leave the stored item unchanged and add a ReviewItem linked to it (reason "tentative"). Fix the test `pipelineUncertainNoChangeStillStoresTentativeItem` that asserts the old behaviour.
+4. CommitmentUpdater.swift: an `updated` item with empty dueText clears dueStart/dueEnd and replaces kind (for example "dinner is now at Luigi's" erases 7pm). With empty dueText keep the existing dates and kind; only title/actor change. Update `pipelineEmptyDueTextUpdateUsesUpdaterWithoutReview`.
+5. InboxPipeline.swift:112: a relevant, non-tentative `.noChange` item that matches nothing is dropped silently. Send it to review (reason "unclear change") and test it.
+6. Forget all and Reset demo must also delete every file in the App Group `Inbox/` (pending files hold full message bodies, SPEC 7.3).
+7. Tests: A7 must script FakeExtractor to return an item whose evidence is the injection sentence and assert the result holds only typed data (no action types exist) and the item is a plain commitment or review, not skipped by the prefilter alone; A8 must cover the List-Unsubscribe header path with no date. When an item fails on date or match, the review excerpt must be the item's validated evidence (bounded by EvidenceContext), not the first 40 characters of the message.
+
+Non-blocking: quarantine an inbox file that fails to decode (move to `Inbox/Failed/`) instead of alerting on every activation; `StoredInboxReceipt` rows grow by one per paste.

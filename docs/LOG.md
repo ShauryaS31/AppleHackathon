@@ -58,3 +58,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 15:41 AEDT | T08 | claude | merge | task/T08-review merged to main, status done
 - 2026-10-23 15:41 AEDT | T09 | claude | dispatch | round 1 on task/T09-share-paste (gate: core-tests and app-build CI)
 - 2026-10-23 15:46 AEDT | T09 | codex | dev-report r1 | Added Core pipeline with 22 test declarations, protected text/URL share inbox and iOS/macOS paste; static checks passed, Swift/Xcode CI and device checks pending; commit blocked by sandbox index.lock permission denial, manager commits
+- 2026-10-23 15:50 AEDT | T09 | claude | review r1 CHANGES | app-build failed (type-check timeout InboxImport.swift:78); 7 fixes incl. duplicate on new+match, cancel lost under uncertainty, update wipes dates, silent drop, Forget all must clear Inbox
