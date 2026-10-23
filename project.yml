@@ -56,6 +56,7 @@ targets:
       path: Config/Generated/Recalled.entitlements
       properties:
         com.apple.security.application-groups: [group.au.recalled.app]
+        com.apple.developer.default-data-protection: NSFileProtectionComplete
 
   RecalledMac:
     type: application
