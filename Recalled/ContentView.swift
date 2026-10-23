@@ -166,7 +166,7 @@ private struct TodayView: View {
     private func agendaRow(_ item: StoredCommitment) -> some View {
         let itemConflicts = conflicts.filter { $0.commitment.id == item.id }
         return NavigationLink {
-            CommitmentDetailView(commitment: item, conflicts: itemConflicts)
+            CommitmentDetailView(store: store, commitment: item)
         } label: {
             VStack(alignment: .leading, spacing: 6) {
                 Text(item.title).font(.headline)
@@ -191,6 +191,10 @@ private struct TodayView: View {
                     }
                 }
                 .font(.caption.bold())
+                ForEach(itemConflicts.indices, id: \.self) { index in
+                    Text("Overlaps: \(itemConflicts[index].event.title)")
+                        .font(.caption).foregroundStyle(.red)
+                }
             }
             .padding(.vertical, 4)
         }
@@ -199,7 +203,7 @@ private struct TodayView: View {
     @MainActor
     private func refreshConflicts() async {
         let key = refreshKey
-        guard let end = Calendar.current.date(byAdding: .day, value: 2, to: today) else { return }
+        guard let end = Calendar.current.date(byAdding: .day, value: 14, to: today) else { return }
         do {
             let events = try await store.calendarStore.events(in: DateInterval(start: today, end: end))
             guard !Task.isCancelled, key == refreshKey else { return }
@@ -208,7 +212,7 @@ private struct TodayView: View {
         } catch {
             guard !Task.isCancelled, key == refreshKey else { return }
             conflicts = []
-            calendarError = "Calendar conflicts could not be checked."
+            calendarError = error.localizedDescription
         }
     }
 

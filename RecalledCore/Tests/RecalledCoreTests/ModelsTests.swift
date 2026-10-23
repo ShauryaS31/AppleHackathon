@@ -137,7 +137,7 @@ private let timestamp = Date(timeIntervalSince1970: 1_792_800_000)
         "candidate", "tentative", "confirmed", "completed", "cancelled", "superseded", "needsReview"
     ])
     #expect(SourceMessage.Source.allCases.map(\.rawValue) == ["share", "gmail", "seed"])
-    #expect(ActionReceipt.Action.allCases.map(\.rawValue) == ["createEvent", "createReminder"])
+    #expect(ActionReceipt.Action.allCases.map(\.rawValue) == ["createEvent", "updateEvent", "createReminder"])
     #expect(ExtractionResult.Relevance.allCases.map(\.rawValue) == ["none", "uncertain", "relevant"])
     #expect(ExtractionResult.Change.allCases.map(\.rawValue) == [
         "new", "updated", "rescheduled", "cancelled", "completed", "none"

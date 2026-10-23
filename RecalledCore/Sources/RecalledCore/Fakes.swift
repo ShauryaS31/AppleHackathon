@@ -53,9 +53,21 @@ public actor InMemoryCalendarStore: CalendarStore {
         nextID += 1
         storedEvents.append(CalendarEvent(
             id: id, title: draft.title, start: draft.start, end: draft.end,
-            timezone: draft.timezone, isAllDay: draft.isAllDay, notes: draft.notes
+            timezone: draft.timezone, isAllDay: draft.isAllDay, notes: draft.notes,
+            location: draft.location
         ))
         return id
+    }
+
+    public func update(_ id: String, with draft: EventDraft) async throws {
+        guard let index = storedEvents.firstIndex(where: { $0.id == id }) else {
+            throw CalendarActionError.eventNotFound
+        }
+        storedEvents[index] = CalendarEvent(
+            id: id, title: draft.title, start: draft.start, end: draft.end,
+            timezone: draft.timezone, isAllDay: draft.isAllDay, notes: draft.notes,
+            location: draft.location
+        )
     }
 }
 

@@ -7,6 +7,7 @@ public protocol CommitmentExtractor: Sendable {
 public protocol CalendarStore: Sendable {
     func events(in range: DateInterval) async throws -> [CalendarEvent]
     func create(_ draft: EventDraft) async throws -> String
+    func update(_ id: String, with draft: EventDraft) async throws
 }
 
 public protocol PlanningModel: Sendable {

@@ -119,7 +119,7 @@ private struct ReviewResolutionView: View {
                         })
                         if let candidate {
                             NavigationLink("View evidence and details") {
-                                CommitmentDetailView(commitment: candidate, conflicts: [])
+                                CommitmentDetailView(store: store, commitment: candidate)
                             }
                         }
                     }

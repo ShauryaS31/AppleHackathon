@@ -10,6 +10,8 @@ final class AppStore {
     let container: ModelContainer
     private(set) var calendarStore: any CalendarStore
     private(set) var calendarRevision = 0
+    var isWritingCalendar = false
+    var pendingCalendarReceipt: ActionReceipt?
     // T05b replaces the default extractor here, shared by paste and inbox imports.
     let extractor: any CommitmentExtractor
     var isImporting = false
@@ -24,9 +26,21 @@ final class AppStore {
          extractor: any CommitmentExtractor = PendingModelExtractor()) throws {
         self.container = try Self.makeContainer()
         self.extractor = extractor
-        self.usesDemoCalendar = calendarStore == nil
-        self.calendarStore = calendarStore ?? InMemoryCalendarStore(events: Seed.calendarEvents())
+        #if DEBUG
+        let demo = calendarStore == nil && ProcessInfo.processInfo.environment["RECALLED_DEMO_CALENDAR"] == "1"
+        #else
+        let demo = false
+        #endif
+        self.usesDemoCalendar = demo
+        self.calendarStore = calendarStore ?? Self.makeCalendarStore(demo: demo)
         container.mainContext.autosaveEnabled = false
+    }
+
+    private static func makeCalendarStore(demo: Bool) -> any CalendarStore {
+        #if DEBUG
+        if demo { return InMemoryCalendarStore(events: Seed.calendarEvents()) }
+        #endif
+        return EventKitCalendarStore()
     }
 
     private static func makeContainer() throws -> ModelContainer {
@@ -148,6 +162,8 @@ final class AppStore {
     }
 
     func resetDemo(now: Date = .now) throws {
+        guard !isWritingCalendar else { throw CalendarApprovalError.busy }
+        guard pendingCalendarReceipt == nil else { throw CalendarApprovalError.pendingReceipt }
         let context = container.mainContext
         do {
             try clearInbox()
@@ -165,6 +181,8 @@ final class AppStore {
     }
 
     func forgetAll() throws {
+        guard !isWritingCalendar else { throw CalendarApprovalError.busy }
+        guard pendingCalendarReceipt == nil else { throw CalendarApprovalError.pendingReceipt }
         let context = container.mainContext
         do {
             try clearInbox()

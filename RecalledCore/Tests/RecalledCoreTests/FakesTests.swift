@@ -46,7 +46,7 @@ private func message(id: String) -> SourceMessage {
 
     let draft = EventDraft(
         title: "Conference", start: start, end: end, timezone: "Australia/Sydney",
-        isAllDay: true, notes: "Approved by user"
+        isAllDay: true, notes: "Approved by user", location: "Sydney"
     )
     let firstID = try await store.create(draft)
     let secondID = try await store.create(draft)
@@ -56,7 +56,8 @@ private func message(id: String) -> SourceMessage {
     #expect(events == [firstID, secondID].map { id in
         CalendarEvent(
             id: id, title: draft.title, start: draft.start, end: draft.end,
-            timezone: draft.timezone, isAllDay: draft.isAllDay, notes: draft.notes
+            timezone: draft.timezone, isAllDay: draft.isAllDay, notes: draft.notes,
+            location: draft.location
         )
     })
     let otherStore = InMemoryCalendarStore()
