@@ -29,7 +29,7 @@ Parallel lanes on Saturday morning: T06 (SCX spike) runs in its own worktree alo
 | [T03](../tasks/T03-prefilter.md) | Normaliser, quote and signature stripper, rules prefilter | M1 | Sat 24 Oct, 10:45 to 11:30 | T02 | codex | done |
 | [T04](../tasks/T04-resolvers.md) | DateResolver, EvidenceValidator, Matcher, ConflictDetector | M1 | Sat 24 Oct, 10:45 to 12:00 | T02 | codex | done |
 | [T04b](../tasks/T04b-date-phrases.md) | DateResolver: common date phrasings | M1 | Fri 23 Oct (Windows mode) | T04 | codex | done |
-| [T05a](../tasks/T05a-instructions-benchmark.md) | Extraction instructions and benchmark fixtures | M1 | Fri 23 Oct (Windows mode) | T03, T04b | codex | in_progress |
+| [T05a](../tasks/T05a-instructions-benchmark.md) | Extraction instructions and benchmark fixtures | M1 | Fri 23 Oct (Windows mode) | T03, T04b | codex | done |
 | [T05b](../tasks/T05b-fm-extractor.md) | Foundation Models extractor and on-device benchmark screen | M1 | When the Mac arrives | T05a, T09 | codex, then owner on device | blocked |
 | [T06](../tasks/T06-scx-spike.md) | SCXSwiftKit spike: PlanningModel implementation | M1 | Sat 24 Oct, 10:00 to 11:30 (parallel worktree) | T01 | codex | todo |
 | [T07](../tasks/T07-store-today.md) | SwiftData store, seed dataset, Today agenda, item detail | M2 | Sat 24 Oct, 12:30 to 14:00 | T05a | codex | todo |
