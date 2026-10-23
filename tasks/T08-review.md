@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | in_progress |
+| Status | changes_requested |
 | Milestone | M2 |
 | Window | Sat 24 Oct, 13:30 to 14:30 |
 | Depends on | T07 |
@@ -59,3 +59,13 @@ EventKit writes.
   - `git diff --check` and `git diff --no-index --check -- /dev/null` for each new Swift file: passed with no whitespace errors.
   - Static inspection: both targets include the new files; RecalledCore and protected project documents are unchanged. There is no existing app-test target; runtime mutation/rollback verification remains pending the Mac/device gate.
 - Not done / risks / questions for the manager: Manager must push `task/T08-review`, obtain green `app-build`, and add the PENDING DEVICE checks above to the Mac gate checklist (I did not edit `docs/PLAN.md`). A message review without linked StoredEvidence has no original source type/sent timestamp; the UI labels its available review time honestly, and Create item does not manufacture evidence/source metadata from a review reason. Extraction wiring and EventKit provider updates remain outside T08.
+
+## Review (round 1)
+- Date: 2026-10-23 15:32 AEDT
+- Verdict: CHANGES
+- Evidence: core-tests run 39900686460 and app-build run 39900686260 green on task/T08-review. Tab badge, Review list, Edit with date-only toggle, Dismiss, Mark as same (existing keeps id, takes due fields and evidence, version bump, candidate superseded) and message-level Create are present; all resolution happens in one save with rollback.
+
+Required fixes:
+1. ReviewActions.swift `.confirm`: confirming an item with no date throws "Choose a date and time before confirming". SPEC allows commitments without a date (benchmark fixture ported-04 "Please send the revised proposal. We have not agreed a deadline."). Confirm must accept `dueStart == nil` and set status confirmed; it only validates a schedule when one exists.
+2. ReviewActions.swift `.create` and the Create form: `schedule` must be optional ("No date" option in the form), so a message-level review can become a dateless commitment.
+3. Extract the decision logic of `resolveReview` (what changes on candidate and existing for each action, which review rows are removed) into a pure function over RecalledCore `Commitment` values, in RecalledCore, with unit tests for: confirm with and without a date, edit, dismiss, merge (id kept, version bumped on both, candidate superseded), create with and without a date, stale or invalid target. `AppStore.resolveReview` then applies the result to the SwiftData rows. This puts the Review rules under core-tests instead of compile-only.

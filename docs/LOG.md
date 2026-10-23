@@ -52,3 +52,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 15:25 AEDT | T07 | claude | merge | task/T07-store-today merged to main, status done
 - 2026-10-23 15:25 AEDT | T08 | claude | dispatch | round 1 on task/T08-review (gate: app-build CI (core-tests if Core changes))
 - 2026-10-23 15:30 AEDT | T08 | codex | dev-report r1 | Review tab and transactional resolution actions committed as bfed3f2; app-build CI and device checks pending (no Xcode on Windows)
+- 2026-10-23 15:32 AEDT | T08 | claude | review r1 CHANGES | CI green; 3 fixes: confirm and create without a date, move resolution rules to RecalledCore with tests

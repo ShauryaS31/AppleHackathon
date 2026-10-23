@@ -33,7 +33,7 @@ Parallel lanes on Saturday morning: T06 (SCX spike) runs in its own worktree alo
 | [T05b](../tasks/T05b-fm-extractor.md) | Foundation Models extractor and on-device benchmark screen | M1 | When the Mac arrives | T05a, T09 | codex, then owner on device | blocked |
 | [T06](../tasks/T06-scx-spike.md) | SCXSwiftKit spike: PlanningModel implementation | M1 | Sat 24 Oct, 10:00 to 11:30 (parallel worktree) | T01 | codex | todo |
 | [T07](../tasks/T07-store-today.md) | SwiftData store, seed dataset, Today agenda, item detail | M2 | Sat 24 Oct, 12:30 to 14:00 | T05a | codex | done |
-| [T08](../tasks/T08-review.md) | Review queue | M2 | Sat 24 Oct, 13:30 to 14:30 | T07 | codex | in_progress |
+| [T08](../tasks/T08-review.md) | Review queue | M2 | Sat 24 Oct, 13:30 to 14:30 | T07 | codex | changes_requested |
 | [T09](../tasks/T09-share-paste.md) | Share extension and paste input (text only) | M2 | Sat 24 Oct, 14:00 to 15:30 | T07 | codex, then owner on device | todo |
 | [T10](../tasks/T10-eventkit.md) | EventKit conflicts, approved event creation, receipts | M3 | Sat 24 Oct, 15:30 to 17:00 | T08 | codex | todo |
 | [T11](../tasks/T11-notifications.md) | Local notification reminders | M3 | Sat 24 Oct, 16:30 to 18:00 | T10 | codex | todo |
