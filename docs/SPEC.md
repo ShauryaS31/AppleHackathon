@@ -37,7 +37,7 @@ Recalled exists as a web app (React/Vite, Supabase, OpenAI, ElevenLabs) built fo
 ## 5. Demo story (5 minutes)
 
 1. **0:00 to 0:40 Problem.** Three apps, one confused person.
-2. **0:40 to 1:40 Share in.** Share a WhatsApp screenshot ("dinner moved to Sat 7pm at Bar Totti's?") into Recalled. Phone is in airplane mode. On-device extraction shows a tentative event with the exact source sentence highlighted.
+2. **0:40 to 1:40 Share in.** Share a WhatsApp message as text ("dinner moved to Sat 7pm at Bar Totti's?") into Recalled from the share sheet, or copy it and tap "Paste message" in the app. Phone is in airplane mode. On-device extraction shows a tentative event with the exact source sentence highlighted.
 3. **1:40 to 2:30 Conflict and Review.** Recalled flags a clash with an existing calendar event and a missing detail. User resolves it in Review.
 4. **2:30 to 3:10 Act.** Approve. A real calendar event and reminder are created through EventKit. Show it in Apple Calendar.
 5. **3:10 to 4:10 Plan my week.** Airplane mode off. "Sort out my week." Show the "What left my phone" ledger: pseudonymised structured items only, sent to MAGPiE in Australia, region verified. Answer comes back with real names restored on device.
@@ -47,7 +47,7 @@ Recalled exists as a web app (React/Vite, Supabase, OpenAI, ElevenLabs) built fo
 ## 6. Scope
 
 ### Must have (demo path)
-- M1 Share extension: text and images (screenshots), Vision OCR for images.
+- M1 Share extension: shared text and URLs, plus an in-app "Paste message" button. No OCR (dropped 23 Oct 2026).
 - M2 On-device prefilter and extraction with Foundation Models, evidence validated.
 - M3 Today agenda, item detail with evidence, Review queue.
 - M4 EventKit: read events for conflicts, create event and reminder after approval.
@@ -75,7 +75,8 @@ Recalled exists as a web app (React/Vite, Supabase, OpenAI, ElevenLabs) built fo
 ```
  Sources (on device)                    On-device pipeline                         Outputs
  ------------------                     ------------------                         -------
- Share extension (text, image) --+
+ Share extension (text, URL) ----+
+ Paste message (in app) ---------+
  Gmail API (device OAuth)  ------+--> [0] Normalise + strip quotes/signatures
  Seed dataset  ------------------+    [1] Rules prefilter (labels, headers,
                                           NSDataDetector date signal)
@@ -99,7 +100,7 @@ Recalled exists as a web app (React/Vite, Supabase, OpenAI, ElevenLabs) built fo
 |---|---|---|---|
 | `RecalledCore` | Swift Package | Models, prefilter, quote stripper, date resolver, evidence validator, matcher, conflict detector, pseudonymiser, policy, protocols | Yes, `swift test` on macOS |
 | `Recalled` | iOS app target | SwiftUI views, SwiftData, EventKit, notifications, FM extractor, SCX client, ElevenLabs client, App Intents | Partly (UI tests in simulator) |
-| `RecalledShare` | Share extension | Receives text/images, OCR, writes to shared App Group container | Simulator |
+| `RecalledShare` | Share extension | Receives shared text and URLs, writes a SourceMessage to the shared App Group container | Simulator |
 
 Rule: `RecalledCore` must not import FoundationModels, EventKit, UIKit or SwiftUI. Platform services are behind protocols so CI can run on a macOS runner without Apple Intelligence.
 
@@ -197,7 +198,7 @@ Rules:
 |---|---|
 | Prefilter per message | under 10 ms |
 | Extraction per relevant message | under 3 s |
-| Share-to-result for one screenshot | under 6 s |
+| Share-to-result for one shared or pasted message | under 6 s |
 | First import, 200 messages | first items within 10 s, all within 3 min |
 
 Baseline to compare (web Recalled, 10 Oct 2026): 100 messages in 125 s with 5 cloud workers, 56 skipped by Decisions, 44 extracted at 2.08 s average.
@@ -206,7 +207,7 @@ Baseline to compare (web Recalled, 10 Oct 2026): 100 messages in 125 s with 5 cl
 
 | # | Scenario | Expected |
 |---|---|---|
-| A1 | Screenshot with "dinner Sat 7pm?" | Tentative event, evidence highlighted, goes to Review |
+| A1 | Shared or pasted text "dinner Sat 7pm?" | Tentative event, evidence highlighted, goes to Review |
 | A2 | Ticket email with exact time | Confirmed event, correct local time, one item |
 | A3 | Later message moves the dinner to Sunday | Same item updated (version 2), no duplicate |
 | A4 | Cancellation message | Item cancelled, pending reminder removed |

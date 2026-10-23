@@ -5,7 +5,7 @@
 | Status | todo |
 | Milestone | Stretch |
 | Window | Only if ahead of plan |
-| Depends on | T05 |
+| Depends on | T05b |
 | Assignee | owner + codex |
 | Branch | task/T18-coreml-triage |
 
