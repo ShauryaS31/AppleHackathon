@@ -13,6 +13,8 @@ final class AppStore {
     // T05b replaces the default extractor here, shared by paste and inbox imports.
     let extractor: any CommitmentExtractor
     var isImporting = false
+    // Changing this token prevents suspended extraction from restoring erased input.
+    var inboxGeneration = UUID()
     var inboxError: String?
     private let usesDemoCalendar: Bool
     private static var loggedFallback = false
@@ -148,6 +150,7 @@ final class AppStore {
     func resetDemo(now: Date = .now) throws {
         let context = container.mainContext
         do {
+            try clearInbox()
             try deleteRows(in: context)
             Seed.insert(into: context, now: now)
             try context.save()
@@ -164,6 +167,7 @@ final class AppStore {
     func forgetAll() throws {
         let context = container.mainContext
         do {
+            try clearInbox()
             try deleteRows(in: context)
             try context.save()
         } catch {
@@ -172,6 +176,19 @@ final class AppStore {
         }
         if usesDemoCalendar { calendarStore = InMemoryCalendarStore() }
         calendarRevision += 1
+    }
+
+    private func clearInbox() throws {
+        inboxGeneration = UUID()
+        let manager = FileManager.default
+        if let group = manager.containerURL(forSecurityApplicationGroupIdentifier: "group.au.recalled.app") {
+            let directory = group.appendingPathComponent("Inbox", isDirectory: true)
+            if manager.fileExists(atPath: directory.path) {
+                // Remove the entire queue, including hidden files and nested failed input.
+                try manager.removeItem(at: directory)
+            }
+        }
+        inboxError = nil
     }
 
     private func deleteRows(in context: ModelContext) throws {

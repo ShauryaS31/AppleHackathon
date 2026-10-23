@@ -13,11 +13,8 @@ public enum CommitmentUpdater {
     ) -> Result {
         guard commitment.version < Int.max else { return .review }
         var updated = commitment
-        if item.dueText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            updated.dueStart = nil
-            updated.dueEnd = nil
-            updated.kind = item.kind
-        } else {
+        // Missing date text is not a request to erase an existing schedule.
+        if !item.dueText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let resolution = DateResolver.resolve(dueText: item.dueText, sentAt: sentAt, timeZone: timeZone)
             switch resolution {
             case .exact(let interval):
@@ -31,11 +28,11 @@ public enum CommitmentUpdater {
             case .ambiguous:
                 return .review
             }
+            updated.dueText = item.dueText
+            updated.timezone = timeZone.identifier
         }
         updated.title = item.title
         updated.actor = item.actor
-        updated.dueText = item.dueText
-        updated.timezone = timeZone.identifier
         updated.status = item.tentative ? .tentative : .confirmed
         updated.version += 1
         return .applied(updated)

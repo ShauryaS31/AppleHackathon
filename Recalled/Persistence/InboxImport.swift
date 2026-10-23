@@ -29,6 +29,9 @@ extension AppStore {
                     // importMessage returns only after a successful transaction (or a
                     // durable receipt from an earlier successful transaction).
                     try manager.removeItem(at: file)
+                } catch is CancellationError {
+                    // Reset/forget invalidated this batch while extraction was suspended.
+                    return
                 } catch {
                     // Keep failed input for retry and surface the failure; never log bodies.
                     inboxError = "Couldn't finish importing shared text. The inbox file was kept for retry."
@@ -60,6 +63,8 @@ extension AppStore {
             } else {
                 notice = "Message already imported."
             }
+        } catch is CancellationError {
+            notice = "Import cancelled because stored data was cleared."
         } catch {
             notice = "Couldn't save this message. Please paste it again."
         }
@@ -70,30 +75,35 @@ extension AppStore {
     }
 
     private func importMessage(_ message: SourceMessage) async throws -> InboxPipeline.Result? {
+        let generation = inboxGeneration
         let context = container.mainContext
         let sourceID = message.id
         let receipts = FetchDescriptor<StoredInboxReceipt>(
             predicate: #Predicate { $0.sourceMessageID == sourceID })
         guard try context.fetch(receipts).isEmpty else { return nil }
-        let existing = try context.fetch(FetchDescriptor<StoredCommitment>())
-            .map { $0.toCore() }
-            .filter { $0.status != .cancelled && $0.status != .completed && $0.status != .superseded }
-            .sorted { $0.id.uuidString < $1.id.uuidString }
-        let refs = existing.enumerated().map { index, value in
+        let stored: [StoredCommitment] = try context.fetch(FetchDescriptor<StoredCommitment>())
+        let commitments: [Commitment] = stored.map { (row: StoredCommitment) -> Commitment in row.toCore() }
+        let active: [Commitment] = commitments.filter { (value: Commitment) -> Bool in
+            value.status != .cancelled && value.status != .completed && value.status != .superseded
+        }
+        let existing: [Commitment] = active.sorted { (left: Commitment, right: Commitment) -> Bool in
+            left.id.uuidString < right.id.uuidString
+        }
+        let refs: [ItemRef] = existing.enumerated().map { index, value in
             ItemRef(ref: "t\(index + 1)", commitmentId: value.id, title: value.title,
                     kind: value.kind, status: value.status)
         }
         let result = await InboxPipeline.process(message, extractor: extractor,
             existing: existing, refs: refs, timeZone: .current)
+        guard generation == inboxGeneration else { throw CancellationError() }
         let prepared = Prefilter.preparedText(message)
         let evidence = result.evidence.map {
             StoredEvidence($0, sender: message.sender, subject: message.subject,
                            sentAt: message.sentAt, body: prepared)
         }
-        let reviews = result.reviewItems.map { review in
-            let excerpt = result.evidence.first { $0.commitmentId == review.commitmentId }?.excerpt
-            return StoredReviewItem(review, sender: message.sender,
-                                    excerpt: excerpt ?? prepared, createdAt: .now)
+        let reviews = result.reviews.map { review in
+            StoredReviewItem(review.item, sender: message.sender,
+                             excerpt: review.excerpt, createdAt: .now)
         }
         try ingest(commitments: result.newCommitments + result.updatedCommitments,
                    evidence: evidence, reviewItems: reviews, sourceMessageID: message.id)
