@@ -38,3 +38,22 @@ xcodebuild -scheme RecalledMac -destination 'generic/platform=macOS' build
 Items dated after tomorrow (a later "Upcoming" view), editing from Today.
 
 <!-- Developer appends "## Dev Report (round n)" below. Manager appends "## Review (round n)" below. Never delete earlier rounds. -->
+
+## Dev Report (round 1)
+- Date: 2026-10-23 16:45 AEDT
+- Changed files: `Recalled/ContentView.swift`, `Recalled/Persistence/Seed.swift`, `RecalledCore/Sources/RecalledCore/AgendaFilter.swift`, `RecalledCore/Tests/RecalledCoreTests/AgendaFilterTests.swift`, `tasks/T07b-no-date-section.md`; completion entry in `docs/LOG.md`.
+- What I did: Added `AgendaFilter.noDate`, a pure `[Commitment] -> [Commitment]` filter with case-insensitive title sorting and UUID tie-breaking. Today maps its results back to stored commitments and shows a nonempty No date section after Tomorrow. All three agenda sections share the same row and Detail destination; rows explicitly show the actor as well as the existing evidence/source label. Added a confirmed, undated proposal seed and preserved its status by skipping date resolution for empty date text. Nonempty seed dates still use DateResolver.
+- Acceptance criteria:
+  1. Third No date section below Today/Tomorrow, containing only confirmed items without dueStart: implemented in TodayView using AgendaFilter.noDate; `noDateIncludesOnlyConfirmedStatus` and `noDateExcludesEveryStartDateButDoesNotRequireAnEmptyEndOrDateText` cover the rules. PENDING CI compile check and PENDING DEVICE appearance check.
+  2. Same agenda row appearance (source icon, title, actor) and same Detail view: all sections call `agendaRow`, which links to CommitmentDetailView with the stored item. PENDING CI compile check and PENDING DEVICE navigation/appearance check.
+  3. Stable case-insensitive title ordering: covered by `noDateSortsTitlesIgnoringCase` and `noDateTitleTiesUseIdentityRegardlessOfInputOrder`, including identical-title ties. Tests written, execution pending core-tests.
+  4. Hidden when empty and excludes tentative, needsReview, completed, cancelled and superseded: guarded by `!undated.isEmpty`; the allCases status test also excludes candidate. `noDateHandlesEmptyInputAndNoEligibleItems` covers empty results. PENDING DEVICE empty-section check; core-tests pending.
+  5. Pure RecalledCore filter and unit tests: AgendaFilter imports only Foundation and operates solely on input Commitment values; five Swift Testing tests added to the existing RecalledCoreTests target. Execution pending core-tests.
+  6. Reset demo includes an undated confirmed item: `Send revised proposal`, with source evidence and empty due text, retains the seed's default confirmed status and nil dueStart. PENDING DEVICE Reset demo check.
+  7. Builds on Recalled and RecalledMac: implementation uses their existing shared source directory and platform-neutral SwiftUI/Core APIs. NOT VERIFIED locally; both builds await app-build CI on task/T07b-no-date-section.
+- Verify commands run and results:
+  - `swift test --package-path RecalledCore`: attempted; could not run because swift is not installed/recognized.
+  - `xcodegen && xcodebuild -scheme Recalled -destination 'generic/platform=iOS Simulator' build`: attempted with PowerShell's conditional-success equivalent; xcodegen is not installed/recognized, so the dependent build did not run.
+  - `xcodebuild -scheme RecalledMac -destination 'generic/platform=macOS' build`: attempted; could not run because xcodebuild is not installed/recognized.
+  - `git diff --check`: passed, no whitespace errors. Source/diff review completed; this is not a compile or runtime check.
+- Not done / risks / questions for the manager: Windows has no Swift toolchain or Xcode; no tools were installed and no tests/builds are claimed to pass. Manager must push and obtain green core-tests and app-build, then add the PENDING DEVICE checks to the Mac gate checklist. Existing Detail view displays Date = Needs review for any nil dueStart, including confirmed undated items; noted without changing it outside this task's Today scope. No other task started; no merge or push performed.

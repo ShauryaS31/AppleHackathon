@@ -87,6 +87,14 @@ private struct TodayView: View {
                 if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today) {
                     agendaSection("Tomorrow", day: tomorrow)
                 }
+                let undated = undatedItems
+                if !undated.isEmpty {
+                    Section("No date") {
+                        ForEach(undated) { item in
+                            agendaRow(item)
+                        }
+                    }
+                }
                 if let calendarError {
                     Section {
                         Label(calendarError, systemImage: "exclamationmark.triangle")
@@ -144,36 +152,47 @@ private struct TodayView: View {
             let items = items(on: day)
             if items.isEmpty { Text("No commitments").foregroundStyle(.secondary) }
             ForEach(items) { item in
-                let itemConflicts = conflicts.filter { $0.commitment.id == item.id }
-                NavigationLink {
-                    CommitmentDetailView(commitment: item, conflicts: itemConflicts)
-                } label: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(item.title).font(.headline)
-                        if let date = item.dueStart {
-                            if item.kind == .deadline && item.dueEnd == nil {
-                                Text("Due this day").font(.subheadline)
-                            } else {
-                                Text(date, style: .time).font(.subheadline)
-                            }
-                        }
-                        if let source = evidence.first(where: { $0.commitmentId == item.id }) {
-                            Label(source.sender, systemImage: source.sourceIcon)
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
-                        HStack(spacing: 12) {
-                            if item.status == .tentative {
-                                Label("Tentative", systemImage: "questionmark.circle").foregroundStyle(.orange)
-                            }
-                            if !itemConflicts.isEmpty {
-                                Label("Conflict", systemImage: "exclamationmark.triangle.fill").foregroundStyle(.red)
-                            }
-                        }
-                        .font(.caption.bold())
-                    }
-                    .padding(.vertical, 4)
-                }
+                agendaRow(item)
             }
+        }
+    }
+
+    private var undatedItems: [StoredCommitment] {
+        AgendaFilter.noDate(commitments.map { $0.toCore() }).compactMap { item in
+            commitments.first { $0.id == item.id }
+        }
+    }
+
+    private func agendaRow(_ item: StoredCommitment) -> some View {
+        let itemConflicts = conflicts.filter { $0.commitment.id == item.id }
+        return NavigationLink {
+            CommitmentDetailView(commitment: item, conflicts: itemConflicts)
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.title).font(.headline)
+                Text(item.actor).font(.subheadline).foregroundStyle(.secondary)
+                if let date = item.dueStart {
+                    if item.kind == .deadline && item.dueEnd == nil {
+                        Text("Due this day").font(.subheadline)
+                    } else {
+                        Text(date, style: .time).font(.subheadline)
+                    }
+                }
+                if let source = evidence.first(where: { $0.commitmentId == item.id }) {
+                    Label(source.sender, systemImage: source.sourceIcon)
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                HStack(spacing: 12) {
+                    if item.status == .tentative {
+                        Label("Tentative", systemImage: "questionmark.circle").foregroundStyle(.orange)
+                    }
+                    if !itemConflicts.isEmpty {
+                        Label("Conflict", systemImage: "exclamationmark.triangle.fill").foregroundStyle(.red)
+                    }
+                }
+                .font(.caption.bold())
+            }
+            .padding(.vertical, 4)
         }
     }
 
