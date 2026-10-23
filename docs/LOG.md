@@ -50,3 +50,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 15:22 AEDT | T07 | claude | dev-report r2 | Logged for codex (sandbox could not write .git): round 1 fixes 1 to 6 addressed; EvidenceContext moved to RecalledCore with tests
 - 2026-10-23 15:25 AEDT | T07 | claude | review r2 PASS | core-tests 39899975476 and app-build 39899975400 green; runtime checks added to Mac gate checklist
 - 2026-10-23 15:25 AEDT | T07 | claude | merge | task/T07-store-today merged to main, status done
+- 2026-10-23 15:25 AEDT | T08 | claude | dispatch | round 1 on task/T08-review (gate: app-build CI (core-tests if Core changes))
