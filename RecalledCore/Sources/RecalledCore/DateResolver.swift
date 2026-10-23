@@ -1,6 +1,9 @@
 import Foundation
 
 public enum DateResolver {
+    private static let weekdayPattern = #"(?:sun(?:day)?|mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?)"#
+    private static let namedDatePattern = #"\d{1,2} [a-z]+(?: \d{4})?"#
+
     public enum Resolution: Sendable, Equatable {
         case exact(DateInterval)
         /// Midnight at the start of the deadline day in the supplied time zone.
@@ -16,8 +19,17 @@ public enum DateResolver {
         calendar.timeZone = timeZone
         calendar.locale = Locale(identifier: "en_AU_POSIX")
         let text = Normaliser.collapseWhitespace(dueText).lowercased()
-        let dayPattern = #"(today|tomorrow|(?:next )?(?:sun(?:day)?|mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?)|\d{1,2}/\d{1,2}(?:/\d{4})?|\d{1,2} [a-z]+(?: \d{4})?)"#
-        guard let parts = captures(#"^"# + dayPattern + #"(?: (?:at )?(.+))?$"#, in: text),
+            .replacingOccurrences(of: #"^(?:(?:by|on|this|due|before) )+"#,
+                                  with: "", options: .regularExpression)
+        // Put the longer forms first so a weekday attached to an explicit date
+        // is validated against that date, rather than treated as a bare weekday.
+        let dayPattern = "(" + [
+            "(?:" + weekdayPattern + " )?" + namedDatePattern,
+            "next week " + weekdayPattern, weekdayPattern + " next week",
+            "today|tomorrow|tonight|end of (?:the )?month|eom",
+            "(?:next )?" + weekdayPattern, #"\d{1,2}/\d{1,2}(?:/\d{4})?"#
+        ].joined(separator: "|") + ")"
+        guard let parts = captures(#"^"# + dayPattern + #"(?:(?:, ?| )(?:at )?(.+))?$"#, in: text),
               let day = resolveDay(parts[0], sentAt: sentAt, calendar: calendar) else {
             return .ambiguous
         }
@@ -26,14 +38,16 @@ public enum DateResolver {
         let times = parts[1].components(separatedBy: " to ")
             .flatMap { $0.components(separatedBy: CharacterSet(charactersIn: "-–")) }
         guard (1...2).contains(times.count),
-              let start = resolveTime(times[0], on: day, calendar: calendar) else {
+              let start = resolveTime(times[0], on: day, calendar: calendar,
+                                      defaultPM: parts[0] == "tonight") else {
             return .ambiguous
         }
         if times.count == 1 {
             return .exact(DateInterval(start: start, duration: 3_600))
         }
         // An end earlier than the start could mean overnight or a typo: review it.
-        guard let end = resolveTime(times[1], on: day, calendar: calendar), end > start else {
+        guard let end = resolveTime(times[1], on: day, calendar: calendar,
+                                    defaultPM: parts[0] == "tonight"), end > start else {
             return .ambiguous
         }
         return .exact(DateInterval(start: start, end: end))
@@ -41,13 +55,29 @@ public enum DateResolver {
 
     private static func resolveDay(_ text: String, sentAt: Date, calendar: Calendar) -> Date? {
         let today = calendar.startOfDay(for: sentAt)
-        if text == "today" { return today }
+        if text == "today" || text == "tonight" { return today }
         if text == "tomorrow" { return calendar.date(byAdding: .day, value: 1, to: today) }
-        let weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
+        if ["end of month", "end of the month", "eom"].contains(text) {
+            guard let month = calendar.dateInterval(of: .month, for: today) else { return nil }
+            return calendar.date(byAdding: .day, value: -1, to: month.end)
+        }
+        if let parts = captures("^(" + weekdayPattern + ") (" + namedDatePattern + ")$", in: text) {
+            guard let day = resolveDay(parts[1], sentAt: sentAt, calendar: calendar),
+                  calendar.component(.weekday, from: day) == weekdayNumber(parts[0]) else { return nil }
+            return day
+        }
+        if let parts = captures(
+            "^(?:next week (" + weekdayPattern + ")|(" + weekdayPattern + ") next week)$", in: text
+        ), let weekday = weekdayNumber(parts[0].isEmpty ? parts[1] : parts[0]) {
+            // Monday is offset zero, regardless of Calendar's default firstWeekday.
+            let daysSinceMonday = (calendar.component(.weekday, from: today) + 5) % 7
+            let offset = 7 - daysSinceMonday + (weekday + 5) % 7
+            return calendar.date(byAdding: .day, value: offset, to: today)
+        }
         let next = text.hasPrefix("next ")
         let weekdayText = next ? String(text.dropFirst(5)) : text
-        if let index = weekdays.firstIndex(of: String(weekdayText.prefix(3))) {
-            var offset = (index + 1 - calendar.component(.weekday, from: today) + 7) % 7
+        if let weekday = weekdayNumber(weekdayText) {
+            var offset = (weekday - calendar.component(.weekday, from: today) + 7) % 7
             if next && offset == 0 { offset = 7 }
             return calendar.date(byAdding: .day, value: offset, to: today)
         }
@@ -89,6 +119,13 @@ public enum DateResolver {
         )
     }
 
+    private static func weekdayNumber(_ text: String) -> Int? {
+        guard captures("^(" + weekdayPattern + ")$", in: text) != nil,
+              let index = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
+                .firstIndex(of: String(text.prefix(3))) else { return nil }
+        return index + 1
+    }
+
     private static func resolveAbsoluteDay(
         day: Int, month: Int, year: Int, inferYear: Bool, today: Date, calendar: Calendar
     ) -> Date? {
@@ -111,14 +148,20 @@ public enum DateResolver {
         return calendar.startOfDay(for: date)
     }
 
-    private static func resolveTime(_ text: String, on day: Date, calendar: Calendar) -> Date? {
+    private static func resolveTime(
+        _ text: String, on day: Date, calendar: Calendar, defaultPM: Bool = false
+    ) -> Date? {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        let time = ["noon", "midday"].contains(trimmed) ? "12pm" : trimmed
         guard let parts = captures(
             #"^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$"#,
-            in: text.trimmingCharacters(in: .whitespaces)
+            in: time
         ), var hour = Int(parts[0]) else { return nil }
         let minute = Int(parts[1]) ?? 0
         guard (0...59).contains(minute) else { return nil }
-        if parts[2].isEmpty {
+        if parts[2].isEmpty && defaultPM && (1...12).contains(hour) {
+            hour = hour % 12 + 12
+        } else if parts[2].isEmpty {
             // Bare '7' does not specify morning or evening; 24-hour HH:mm does.
             guard !parts[1].isEmpty, (0...23).contains(hour) else { return nil }
         } else {

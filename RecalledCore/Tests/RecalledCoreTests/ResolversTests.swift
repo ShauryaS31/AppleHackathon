@@ -137,6 +137,157 @@ private func event(_ startHour: Int, _ endHour: Int, id: String = "other-event")
     #expect(resolve("tomorrow", sent: nearMidnight) == .dateOnly(localDate(2026, 10, 25)))
 }
 
+@Test func leadingDateFillerWordsAreIgnored() {
+    for (text, plain) in [
+        ("by Friday", "Friday"), ("on tomorrow", "tomorrow"),
+        ("this Sat 7pm", "Sat 7pm"), ("due 25 Oct", "25 Oct"),
+        ("before Sunday", "Sunday"), ("  DUE   by FRIDAY  ", "Friday")
+    ] {
+        #expect(resolve(text) == resolve(plain), "Unexpected resolution for \(text)")
+    }
+    for text in ["by", "due", "byFriday", "thisSaturday", "due sometime soon"] {
+        #expect(resolve(text) == .ambiguous)
+    }
+}
+
+@Test func byFridayIncludesTheMessageFriday() {
+    #expect(resolve("by Friday") == .dateOnly(localDate(2026, 10, 23)))
+    #expect(resolve("by Friday", sent: localDate(2026, 10, 23, 23, 59))
+        == .dateOnly(localDate(2026, 10, 23)))
+    #expect(resolve("by Friday", sent: localDate(2026, 10, 24, 10))
+        == .dateOnly(localDate(2026, 10, 30)))
+}
+
+@Test func weekdayAttachedToNamedDateMustMatchTheResolvedLocalDate() {
+    // 25 October is Saturday in 2025, but Sunday in 2026.
+    #expect(resolve("Sat 25 Oct", sent: localDate(2025, 10, 23, 10))
+        == .dateOnly(localDate(2025, 10, 25)))
+    #expect(resolve("Saturday 25 October 2025") == .dateOnly(localDate(2025, 10, 25)))
+    #expect(resolve("  SUNDAY 25 OCTOBER 2026  ") == .dateOnly(localDate(2026, 10, 25)))
+    #expect(resolve("Sun 25 Oct, 6:30pm") == .exact(DateInterval(
+        start: localDate(2026, 10, 25, 18, 30), duration: 3_600
+    )))
+    for text in ["Sat 25 Oct", "Saturday 25 October 2026", "Sat 25 Oct 2026 7pm",
+                 "Sunday 31 November 2026"] {
+        #expect(resolve(text) == .ambiguous)
+    }
+    #expect(resolve("Fri 1 Jan") == .dateOnly(localDate(2027, 1, 1)))
+    #expect(resolve("Thu 1 Jan") == .ambiguous)
+}
+
+@Test func namedDatesAcceptCommaBeforeTimeAndInferTheNextOccurrence() {
+    #expect(resolve("25 Oct") == .dateOnly(localDate(2026, 10, 25)))
+    for text in ["25 Oct 6:30pm", "25 Oct, 6:30pm", "25 October 2026, 6:30pm",
+                 "  25 OCTOBER 2026, AT 6:30PM  "] {
+        #expect(resolve(text) == .exact(DateInterval(
+            start: localDate(2026, 10, 25, 18, 30), duration: 3_600
+        )))
+    }
+    #expect(resolve("25 Oct", sent: localDate(2026, 10, 25, 23, 59))
+        == .dateOnly(localDate(2026, 10, 25)))
+    #expect(resolve("25 Oct", sent: localDate(2026, 10, 26, 10))
+        == .dateOnly(localDate(2027, 10, 25)))
+    #expect(resolve("1 Jan, 6:30pm") == .exact(DateInterval(
+        start: localDate(2027, 1, 1, 18, 30), duration: 3_600
+    )))
+    #expect(resolve("25 Oct,") == .ambiguous)
+}
+
+@Test func fridayTimeWithOrWithoutAtDefaultsToOneHour() {
+    for text in ["Friday 3pm", "Friday at 3pm"] {
+        #expect(resolve(text) == .exact(DateInterval(
+            start: localDate(2026, 10, 23, 15), duration: 3_600
+        )))
+    }
+}
+
+@Test func tonightOnlyInfersPMWhenATimeIsProvided() {
+    #expect(resolve("  TONIGHT  ") == .dateOnly(localDate(2026, 10, 23)))
+    for (text, hour, minute) in [
+        ("tonight at 8", 20, 0), ("tonight 8:30", 20, 30), ("tonight 7pm", 19, 0),
+        ("tonight at 8:30", 20, 30), ("tonight 20:30", 20, 30),
+        ("tonight 12", 12, 0), ("tonight 8am", 8, 0)
+    ] {
+        #expect(resolve(text) == .exact(DateInterval(
+            start: localDate(2026, 10, 23, hour, minute), duration: 3_600
+        )))
+    }
+    #expect(resolve("tonight", sent: localDate(2026, 10, 24, 0, 30))
+        == .dateOnly(localDate(2026, 10, 24)))
+    #expect(resolve("tonight 8 to 9:30") == .exact(DateInterval(
+        start: localDate(2026, 10, 23, 20), end: localDate(2026, 10, 23, 21, 30)
+    )))
+    for text in ["tonight at", "tonight 13", "tonight 8:60", "tonight 25:00", "Friday 8"] {
+        #expect(resolve(text) == .ambiguous)
+    }
+}
+
+@Test func noonAndMiddayWorkWhereverATimeIsAccepted() {
+    for word in ["noon", "midday"] {
+        for (dayText, day) in [("Friday", 23), ("tomorrow at", 24), ("25 Oct,", 25),
+                               ("25/10", 25), ("tonight", 23), ("next week Tue", 27)] {
+            #expect(resolve("\(dayText) \(word)") == .exact(DateInterval(
+                start: localDate(2026, 10, day, 12), duration: 3_600
+            )))
+        }
+        #expect(resolve("Friday 10am to \(word)") == .exact(DateInterval(
+            start: localDate(2026, 10, 23, 10), end: localDate(2026, 10, 23, 12)
+        )))
+        #expect(resolve("Friday \(word)-2pm") == .exact(DateInterval(
+            start: localDate(2026, 10, 23, 12), end: localDate(2026, 10, 23, 14)
+        )))
+    }
+}
+
+@Test func nextWeekUsesMondayAsTheStartOfTheCalendarWeek() {
+    for sent in [sentAt, localDate(2026, 10, 25, 23, 59)] {
+        for text in ["next week Tue", "Tue next week", "next week Tuesday",
+                     "  TUESDAY NEXT WEEK  "] {
+            #expect(resolve(text, sent: sent) == .dateOnly(localDate(2026, 10, 27)))
+        }
+        for text in ["next week Tue 2pm", "Tue next week at 2pm"] {
+            #expect(resolve(text, sent: sent) == .exact(DateInterval(
+                start: localDate(2026, 10, 27, 14), duration: 3_600
+            )))
+        }
+    }
+    // On Monday, a bare Tuesday is tomorrow; next week's Tuesday is eight days away.
+    #expect(resolve("next week Tue", sent: localDate(2026, 10, 26, 10))
+        == .dateOnly(localDate(2026, 11, 3)))
+    #expect(resolve("Tue next week", sent: localDate(2026, 10, 27, 10))
+        == .dateOnly(localDate(2026, 11, 3)))
+    #expect(resolve("next week Sunday", sent: localDate(2026, 10, 25, 10))
+        == .dateOnly(localDate(2026, 11, 1)))
+    #expect(resolve("next week Monday", sent: localDate(2026, 12, 31, 10))
+        == .dateOnly(localDate(2027, 1, 4)))
+    #expect(resolve("next week Tue 2pm", sent: localDate(2026, 10, 3, 10))
+        == .exact(DateInterval(start: localDate(2026, 10, 6, 14), duration: 3_600)))
+}
+
+@Test func endOfMonthUsesTheLocalMonthIncludingItsLastDay() {
+    for text in ["end of month", "end of the month", "EOM", "  END OF THE MONTH  "] {
+        for sent in [sentAt, localDate(2026, 10, 31, 23, 59)] {
+            #expect(resolve(text, sent: sent) == .dateOnly(localDate(2026, 10, 31)))
+        }
+        #expect(resolve(text, sent: localDate(2026, 11, 1, 0, 30))
+            == .dateOnly(localDate(2026, 11, 30)))
+        #expect(resolve(text, sent: localDate(2026, 2, 10, 10))
+            == .dateOnly(localDate(2026, 2, 28)))
+        #expect(resolve(text, sent: localDate(2028, 2, 10, 10))
+            == .dateOnly(localDate(2028, 2, 29)))
+        #expect(resolve(text, sent: localDate(2026, 12, 31, 23, 59))
+            == .dateOnly(localDate(2026, 12, 31)))
+    }
+}
+
+@Test func unsupportedDatePhrasingsStillRequireReview() {
+    for text in ["sometime soon", "after the exam", "Sat or Sun", "next Friday-ish", "the 32nd",
+                 "next week", "next week Tue or Wed", "end of next month", "EOM maybe",
+                 "Friday noonish", "Sunday 25 Oct or Monday", "tonight sometime"] {
+        #expect(resolve(text) == .ambiguous, "Unexpected resolution for \(text)")
+    }
+}
+
 @Test func evidenceMustBeExactSubstringOfNormalisedMessageA11() {
     let message = "<p>Dinner   is\nSaturday at 7pm.</p>"
     #expect(EvidenceValidator.validate(excerpt: "Dinner is Saturday", message: message))

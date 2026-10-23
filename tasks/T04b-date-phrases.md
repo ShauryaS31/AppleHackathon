@@ -41,3 +41,22 @@ swift test --package-path RecalledCore
 Recurring dates, date ranges across days, other languages, UI.
 
 <!-- Developer appends "## Dev Report (round n)" below. Manager appends "## Review (round n)" below. Never delete earlier rounds. -->
+
+## Dev Report (round 1)
+- Date: 2026-10-23 14:55 AEDT
+- Changed files: `RecalledCore/Sources/RecalledCore/DateResolver.swift`, `RecalledCore/Tests/RecalledCoreTests/ResolversTests.swift`, `tasks/T04b-date-phrases.md`; `docs/LOG.md` receives the required handoff entry.
+- What I did: Extended deterministic parsing for leading filler words, weekday-qualified named dates, commas before times, tonight, noon/midday, Monday-based next-week weekdays, and month-end phrases. Preserved the public signature, Resolution enum, existing calendar validation, DST checks, and one-hour default. Added 10 test functions; existing T04 tests are unchanged. No model date computation or new imports.
+- Acceptance criteria (implementation and test coverage below; Swift tests have NOT been run successfully locally):
+  1. Leading filler words: `leadingDateFillerWordsAreIgnored` covers all five words, combined fillers, case/whitespace normalization, and invalid word boundaries.
+  2. By Friday: `byFridayIncludesTheMessageFriday` covers Friday morning, Friday at 23:59, and the following Friday when sent on Saturday.
+  3. Weekday-qualified dates: `weekdayAttachedToNamedDateMustMatchTheResolvedLocalDate` covers abbreviated/full weekdays and months, explicit/inferred years, timed dates, invalid dates, mismatches, and year rollover. The task's Saturday 25 October 2026 example is ambiguous because that date is Sunday; Saturday 25 October 2025 demonstrates the matching case.
+  4. Named dates with commas/time: `namedDatesAcceptCommaBeforeTimeAndInferTheNextOccurrence` covers both requested comma forms, ordinary timed dates, same-day inclusion, and next-year rollover.
+  5. Friday times: `fridayTimeWithOrWithoutAtDefaultsToOneHour` asserts 15:00 with a 3,600-second duration for both forms.
+  6. Tonight: `tonightOnlyInfersPMWhenATimeIsProvided` covers date-only today, 20:00, 20:30, explicit pm/am, 24-hour time, local midnight, ranges, and invalid times. Bare hours remain ambiguous outside tonight.
+  7. Noon/midday: `noonAndMiddayWorkWhereverATimeIsAccepted` covers weekdays, tomorrow, named/numeric dates, tonight, next week, and both range endpoints at 12:00.
+  8. Next week: `nextWeekUsesMondayAsTheStartOfTheCalendarWeek` covers all requested word orders, date-only/timed results, Sunday and Monday boundaries, a same-weekday message, year rollover, and a DST transition.
+  9. Month end: `endOfMonthUsesTheLocalMonthIncludingItsLastDay` covers all three aliases, the last day at 23:59, a local month boundary, 30/31-day months, February, leap February, and December.
+  10. Unknown phrases: `unsupportedDatePhrasingsStillRequireReview` covers 12 unsupported phrases, including all five suggested examples.
+  11. Existing tests/fixed fixtures: test diff reports 151 added lines and zero deleted lines. New tests use fixed dates and Australia/Sydney, including Friday, Sunday, and month-end sentAt values. Passing T04/T04b tests remain unverified pending CI.
+- Verify commands run and results: `swift test --package-path RecalledCore` attempted; PowerShell exited 1 because `swift` is not recognized. This Windows environment has no Swift toolchain or Xcode; no installation attempted, and no Swift tests claimed as passing. `git diff --check` passed with no output. `git diff --numstat -- RecalledCore/Tests/RecalledCoreTests/ResolversTests.swift` returned 151 additions, 0 deletions.
+- Not done / risks / questions for the manager: Manager must push `task/T04b-date-phrases` and require GitHub Actions `core-tests` to be green. Runtime compilation/test verification is pending; no UI, recurring-date, cross-day-range, or other-language work was undertaken.
