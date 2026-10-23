@@ -55,11 +55,54 @@ private func confirmedEvent() -> Commitment {
     let day = try #require(calendar.date(from: DateComponents(year: 2026, month: 10, day: 4)))
     let item = Commitment(title: "Submit report", kind: .deadline, status: .confirmed,
         actor: "Me", dueText: "4 October", dueStart: day, timezone: calendar.timeZone.identifier)
-    let draft = try CalendarAction.draft(for: item)
+    let draft = try CalendarAction.draft(for: item, calendar: calendar)
     #expect(draft.isAllDay)
     #expect(draft.start == day)
     #expect(draft.end == calendar.date(from: DateComponents(year: 2026, month: 10, day: 5)))
     #expect(draft.end.timeIntervalSince(draft.start) == 23 * 3_600)
+}
+
+@Test(arguments: [
+    ("Australia/Sydney", "America/Los_Angeles"),
+    ("America/Los_Angeles", "Australia/Sydney")
+])
+func dateOnlyDeadlinePreservesSourceDateInDeviceCalendar(sourceZone: String, deviceZone: String) throws {
+    var source = Calendar(identifier: .gregorian)
+    source.timeZone = try #require(TimeZone(identifier: sourceZone))
+    var device = Calendar(identifier: .gregorian)
+    device.timeZone = try #require(TimeZone(identifier: deviceZone))
+    let sourceDate = try #require(source.date(from: DateComponents(year: 2026, month: 10, day: 4)))
+    let item = Commitment(title: "Submit report", kind: .deadline, status: .confirmed,
+        actor: "Me", dueText: "4 October", dueStart: sourceDate, timezone: sourceZone)
+    let draft = try CalendarAction.draft(for: item, calendar: device)
+    #expect(draft.isAllDay)
+    #expect(draft.timezone == deviceZone)
+    #expect(draft.start == device.date(from: DateComponents(year: 2026, month: 10, day: 4)))
+    #expect(draft.end == device.date(from: DateComponents(year: 2026, month: 10, day: 5)))
+    let startComponents = device.dateComponents([.year, .month, .day, .hour, .minute], from: draft.start)
+    #expect(startComponents.year == 2026)
+    #expect(startComponents.month == 10)
+    #expect(startComponents.day == 4)
+    #expect(startComponents.hour == 0)
+    #expect(startComponents.minute == 0)
+    // The target date is reconstructed, not the original absolute midnight.
+    #expect(draft.start != sourceDate)
+}
+
+@Test func dateOnlyDeadlineUsesUsersNonGregorianCalendar() throws {
+    var source = Calendar(identifier: .gregorian)
+    source.timeZone = try #require(TimeZone(identifier: "Australia/Sydney"))
+    var device = Calendar(identifier: .buddhist)
+    device.timeZone = try #require(TimeZone(identifier: "America/Los_Angeles"))
+    let sourceDate = try #require(source.date(from: DateComponents(year: 2026, month: 10, day: 4)))
+    let item = Commitment(title: "Submit report", kind: .deadline, status: .confirmed,
+        actor: "Me", dueText: "4 October", dueStart: sourceDate, timezone: source.timeZone.identifier)
+    let draft = try CalendarAction.draft(for: item, calendar: device)
+    let components = device.dateComponents([.year, .month, .day], from: draft.start)
+    #expect(components.year == 2569)
+    #expect(components.month == 10)
+    #expect(components.day == 4)
+    #expect(draft.end == device.date(byAdding: .day, value: 1, to: draft.start))
 }
 
 @Test func explicitlyTimedDeadlineKeepsItsResolvedTime() throws {
@@ -86,7 +129,7 @@ private func confirmedEvent() -> Commitment {
     #expect(CalendarAction.overlaps(draft: draft, commitment: item, events: [own, boundary]).isEmpty)
 }
 
-@Test func calendarApprovalChecksAllDayDeadlineBlock() throws {
+@Test func calendarApprovalIgnoresAllDayDeadlineBlock() throws {
     var item = confirmedEvent()
     item.kind = .deadline
     item.dueEnd = nil
@@ -94,7 +137,9 @@ private func confirmedEvent() -> Commitment {
     let event = CalendarEvent(id: "busy", title: "Appointment",
         start: draft.start.addingTimeInterval(3_600), end: draft.start.addingTimeInterval(7_200),
         timezone: draft.timezone)
-    #expect(CalendarAction.overlaps(draft: draft, commitment: item, events: [event]) == [event])
+    let allDayEvent = CalendarEvent(id: "holiday", title: "Holiday",
+        start: draft.start, end: draft.end, timezone: draft.timezone, isAllDay: true)
+    #expect(CalendarAction.overlaps(draft: draft, commitment: item, events: [event, allDayEvent]).isEmpty)
 }
 
 @Test func reschedulingUpdatesTheLinkedEventWithoutCreatingADuplicate() async throws {

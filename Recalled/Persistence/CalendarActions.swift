@@ -33,7 +33,8 @@ extension AppStore {
             overlaps: CalendarAction.overlaps(draft: draft, commitment: commitment, events: events))
     }
 
-    /// Returns an updated preview if overlaps changed; no write occurs in that case.
+    /// Returns a new preview if overlaps changed or the linked event was deleted.
+    /// Neither case writes an event; the returned preview needs fresh approval.
     /// A nil result means the approved event and its local receipt were saved.
     func approveCalendar(_ preview: CalendarPreview) async throws -> CalendarPreview? {
         guard !isWritingCalendar else { throw CalendarApprovalError.busy }
@@ -55,7 +56,13 @@ extension AppStore {
         let providerID: String
         let action: ActionReceipt.Action
         if let existingID = preview.commitment.calendarEventId {
-            try await calendarStore.update(existingID, with: preview.draft)
+            do {
+                try await calendarStore.update(existingID, with: preview.draft)
+            } catch EventKitCalendarError.missingEvent {
+                return try unlinkMissingCalendarEvent(preview, events: events)
+            } catch CalendarActionError.eventNotFound {
+                return try unlinkMissingCalendarEvent(preview, events: events)
+            }
             providerID = existingID
             action = .updateEvent
         } else {
@@ -67,9 +74,34 @@ extension AppStore {
         pendingCalendarReceipt = ActionReceipt(commitmentId: preview.commitment.id,
             action: action, providerId: providerID,
             result: "\(action == .updateEvent ? "Updated" : "Created") in Calendar after approval: \(preview.draft.title).")
-        calendarRevision += 1
+        noteCalendarChanged()
         try savePendingCalendarReceipt()
         return nil
+    }
+
+    private func unlinkMissingCalendarEvent(_ preview: CalendarPreview,
+                                            events: [CalendarEvent]) throws -> CalendarPreview {
+        // The commitment may have changed while the provider update was suspended.
+        try validateCalendarSnapshot(preview.commitment)
+        let context = container.mainContext
+        let id = preview.commitment.id
+        guard let row = try context.fetch(FetchDescriptor<StoredCommitment>(
+            predicate: #Predicate { $0.id == id })).first else {
+            throw CalendarApprovalError.stale
+        }
+        do {
+            row.calendarEventId = nil
+            try context.save()
+        } catch {
+            context.rollback()
+            throw error
+        }
+        let unlinked = row.toCore()
+        noteCalendarChanged()
+        // No external write or receipt here. Approval of this preview takes the
+        // normal create path and records a new createEvent receipt on success.
+        return CalendarPreview(commitment: unlinked, draft: preview.draft,
+            overlaps: CalendarAction.overlaps(draft: preview.draft, commitment: unlinked, events: events))
     }
 
     func savePendingCalendarReceipt() throws {

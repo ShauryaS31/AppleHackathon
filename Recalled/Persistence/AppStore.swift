@@ -36,6 +36,10 @@ final class AppStore {
         container.mainContext.autosaveEnabled = false
     }
 
+    func noteCalendarChanged() {
+        calendarRevision += 1
+    }
+
     private static func makeCalendarStore(demo: Bool) -> any CalendarStore {
         #if DEBUG
         if demo { return InMemoryCalendarStore(events: Seed.calendarEvents()) }

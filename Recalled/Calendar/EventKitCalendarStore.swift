@@ -104,12 +104,13 @@ actor EventKitCalendarStore: CalendarStore {
             throw EventKitCalendarError.invalidDraft
         }
         event.title = draft.title
-        event.timeZone = zone
         event.isAllDay = draft.isAllDay
+        event.timeZone = draft.isAllDay ? nil : zone
         event.startDate = draft.start
         event.endDate = draft.end
-        event.location = draft.location
-        event.notes = draft.notes
+        // Absent draft metadata must not erase edits made directly in Calendar.
+        if let location = draft.location { event.location = location }
+        if let notes = draft.notes { event.notes = notes }
         // No attendees or recipients are inferred from commitment/model text.
     }
 }

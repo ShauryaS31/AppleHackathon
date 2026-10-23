@@ -22,7 +22,9 @@ struct CalendarApprovalView: View {
                         LabeledContent("Start", value: formatted(preview.draft.start))
                         LabeledContent("End", value: formatted(preview.draft.end))
                     }
-                    LabeledContent("Time zone", value: preview.draft.timezone)
+                    if !preview.draft.isAllDay {
+                        LabeledContent("Time zone", value: preview.draft.timezone)
+                    }
                     if let location = preview.draft.location, !location.isEmpty {
                         LabeledContent("Location", value: location)
                     }
@@ -84,8 +86,12 @@ struct CalendarApprovalView: View {
         defer { isSaving = false }
         do {
             if let refreshed = try await store.approveCalendar(preview) {
+                let wasUnlinked = preview.commitment.calendarEventId != nil
+                    && refreshed.commitment.calendarEventId == nil
                 preview = refreshed
-                notice = "Calendar overlaps changed. Review them and approve again to save."
+                notice = wasUnlinked
+                    ? "The linked event was deleted from Calendar. Review this new event and approve again to create it."
+                    : "Calendar overlaps changed. Review them and approve again to save."
             } else { dismiss() }
         } catch { errorMessage = error.localizedDescription }
     }
