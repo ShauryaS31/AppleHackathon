@@ -73,3 +73,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 16:45 AEDT | T07b | codex | dev-report r1 | 254a820: added confirmed No date agenda section, pure filter with five tests and undated demo seed; Swift/Xcode unavailable on Windows, CI and device checks pending
 - 2026-10-23 16:49 AEDT | T07b | claude | review r1 PASS | core-tests 39907633419 and app-build 39907633400 green
 - 2026-10-23 16:49 AEDT | T07b | claude | merge | task/T07b-no-date-section merged to main, status done
+- 2026-10-23 16:49 AEDT | T10 | claude | dispatch | round 1 on task/T10-eventkit (gate: core-tests and app-build CI)
