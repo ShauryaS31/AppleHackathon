@@ -55,3 +55,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 15:32 AEDT | T08 | claude | review r1 CHANGES | CI green; 3 fixes: confirm and create without a date, move resolution rules to RecalledCore with tests
 - 2026-10-23 15:37 AEDT | T08 | codex | dev-report r2 | cfec4dc: dateless Confirm/Create and pure Core review resolver with 16 tests; core-tests/app-build and device checks pending
 - 2026-10-23 15:41 AEDT | T08 | claude | review r2 PASS | 138 tests green on core-tests 39901365936; app-build 39901365948 green
+- 2026-10-23 15:41 AEDT | T08 | claude | merge | task/T08-review merged to main, status done
