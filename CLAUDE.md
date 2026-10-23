@@ -10,11 +10,15 @@ Follow the loop in `docs/FACTORY.md` exactly. Summary:
 2. Tighten the brief in `tasks/Txx-*.md` if anything is vague. Acceptance criteria must be checkable.
 3. Create the branch: `git checkout main && git pull --ff-only; git checkout -b task/Txx-slug`.
 4. Set status `in_progress` in PLAN.md and in the task file. Append to LOG.
-5. Dispatch one developer process:
+5. Dispatch one developer process, streaming its output to a log file the owner watches live:
    ```
-   codex exec --model gpt-6-astra --sandbox workspace-write -C . "You are the developer. Read AGENTS.md, then do task Txx exactly as written in tasks/Txx-*.md. You are on branch task/Txx-slug. When finished, append your Dev Report to the task file, commit, append one line to docs/LOG.md, and stop."
+   mkdir -p logs
+   echo "=== Txx round n | $(date) ===" > logs/current.log
+   codex exec --model gpt-6-astra --sandbox workspace-write -C . "You are the developer. Read AGENTS.md, then do task Txx exactly as written in tasks/Txx-*.md. You are on branch task/Txx-slug. When finished, append your Dev Report to the task file, commit, append one line to docs/LOG.md, and stop." 2>&1 | tee -a logs/current.log logs/Txx-rN.log
    ```
    Check the exact flags once with `codex exec --help` (task T00) and update this line if they differ.
+   The owner watches in the right-hand pane with `tail -f logs/current.log` (PowerShell: `Get-Content logs/current.log -Wait -Tail 50`).
+   If the owner says "interactive mode", follow "Interactive mode" in docs/FACTORY.md instead.
 6. When it exits, review (use a subagent for diffs over about 300 lines). Run the verify commands yourself. Write `## Review (round n)` in the task file: verdict PASS or CHANGES, then numbered, specific fixes.
 7. PASS: `git checkout main && git merge --no-ff task/Txx-slug`, push, status `done`, LOG entry.
    CHANGES: status `changes_requested`, dispatch a new developer process with: "Address Review (round n) in tasks/Txx-*.md."

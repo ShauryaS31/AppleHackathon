@@ -76,6 +76,24 @@ A task can only pass if all of these hold:
 
 Things agents cannot verify and must hand to the owner: anything on the physical iPhone, Apple Intelligence output quality, OAuth consent screens, audio playback, signing and provisioning.
 
+## Watching Codex work
+
+**Default: live log.** Every dispatch streams Codex's output to `logs/current.log` (and keeps a per-round copy in `logs/Txx-rN.log`). In Orca's right-hand pane run:
+- macOS / Git Bash: `tail -f logs/current.log`
+- PowerShell: `Get-Content logs/current.log -Wait -Tail 50`
+
+You see every command, file edit and test run as it happens, and Codex still gets a fresh context each round.
+
+**Interactive mode (Mac, optional).** Codex runs in a real TUI you can watch and type into:
+1. Right pane: `tmux new -s codex` then `codex --model gpt-6-astra` inside it.
+2. Manager dispatches with `tmux send-keys -t codex "/new" Enter` (fresh context), then `tmux send-keys -t codex "<task prompt>" Enter`.
+3. Manager detects completion by polling every 30 s for the new `## Dev Report (round n)` heading in the task file or the dev-report line in `docs/LOG.md`.
+4. You can interrupt Codex (Esc) or add guidance in that pane at any time; note it in LOG so the manager knows.
+
+Trade-off: interactive mode is more fun to watch but the completion check is fragile. Use the live log for unattended runs.
+
+**Manual relay (any OS).** Manager writes the brief and says "ready". You type `/new` then "Do task Txx, see AGENTS.md" in the Codex pane, then tell the manager "done, review it". Most control, slowest.
+
 ## Parallel work (optional)
 
 Run at most 2 developers at once, only on tasks with no shared files, each in its own git worktree:
