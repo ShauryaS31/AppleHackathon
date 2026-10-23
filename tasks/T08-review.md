@@ -16,16 +16,16 @@ Uncertain items get resolved by the user, never guessed.
 AGENTS.md; docs/SPEC.md: SPEC 5 step 3; 8 (A1, A11)
 
 ## Acceptance criteria
-- [ ] Review tab lists items with reason (ambiguous date, tentative, evidence mismatch, possible duplicate)
-- [ ] Actions: Confirm, Edit date/time (picker), Dismiss, Mark as same as existing item
-- [ ] Confirm moves status to confirmed and updates Today
-- [ ] Badge count on tab
+- [x] Review tab lists items with reason (ambiguous date, tentative, evidence mismatch, possible duplicate)
+- [x] Actions: Confirm, Edit date/time (picker), Dismiss, Mark as same as existing item
+- [x] Confirm moves status to confirmed and updates Today
+- [x] Badge count on tab
 
 ### Added by manager (2026-10-23)
-- [ ] Message-level review items (no commitment, from T02 round 2) show the sender, time and an excerpt of the stored evidence or the review reason, with actions Dismiss and "Create item" (title, kind, date/time picker); no message body is persisted to do this
-- [ ] "Mark as same as existing item" lets the user pick an open item; the existing item keeps its id, takes the candidate's due fields and evidence, and bumps version (as in A3); the candidate becomes `superseded`
-- [ ] Every action removes the ReviewItem and updates Today without a relaunch
-- [ ] Builds on both `Recalled` and `RecalledMac`
+- [x] Message-level review items (no commitment, from T02 round 2) show the sender, time and an excerpt of the stored evidence or the review reason, with actions Dismiss and "Create item" (title, kind, date/time picker); no message body is persisted to do this
+- [x] "Mark as same as existing item" lets the user pick an open item; the existing item keeps its id, takes the candidate's due fields and evidence, and bumps version (as in A3); the candidate becomes `superseded`
+- [x] Every action removes the ReviewItem and updates Today without a relaunch
+- [x] Builds on both `Recalled` and `RecalledMac`
 
 ## Windows mode
 The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `app-build` (and `core-tests` if RecalledCore changes) must be green on `task/T08-review`. Criteria that need a running app are reviewed as compile-checked and marked PENDING DEVICE; the manager adds them to the "Mac gate checklist" in docs/PLAN.md.
@@ -95,3 +95,11 @@ Required fixes:
   - `git diff --check`: passed. `git diff --no-index --check -- /dev/null` for both new Swift files emitted no whitespace errors (exit 1 indicates files differ from the empty input).
   - Static inspection: resolver imports only Foundation; UI call sites use the Core action/schedule types; app adapter remains main-actor synchronous with a single save/rollback; both workflows already include the needed build/test gates.
 - Not done / risks / questions for the manager: Obtain green `core-tests` and `app-build` on `task/T08-review`; round 1's green runs do not validate these changes. All runtime checks remain PENDING DEVICE. Existing `TodayView.items(on:)` excludes `dueStart == nil`, so dateless items now confirm/create successfully and leave Review but are not displayed in Today/Tomorrow agenda sections. This pre-existing Today presentation behavior is outside the three requested fixes and was not changed. No protected documents or EventKit writes were changed.
+
+## Review (round 2)
+- Date: 2026-10-23 15:41 AEDT
+- Verdict: PASS
+- Evidence: core-tests run 39901365936 green (138 tests, 16 in ReviewResolverTests), app-build run 39901365948 green on task/T08-review.
+- Round 1 fixes verified: confirm and create work without a date; ReviewResolver in RecalledCore returns a change plan (updates, created item, removed review ids, evidence reparent or copy) that AppStore applies in one save; tests cover every action, stale and invalid targets, version overflow.
+- Non-blocking, raised with the owner: Today shows only items dated today or tomorrow, so a confirmed item without a date is not visible anywhere yet.
+- PENDING DEVICE: moved to the Mac gate checklist (T08 rows).
