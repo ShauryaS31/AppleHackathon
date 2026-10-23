@@ -16,14 +16,14 @@ Make the privacy claim provable on screen.
 AGENTS.md; docs/SPEC.md: SPEC 7.5 item 6; 8 (A9)
 
 ## Acceptance criteria
-- [ ] `Pseudonymiser` in RecalledCore: names and organisations via NLTagger, emails, phones, addresses via NSDataDetector, replaced with stable placeholders [P1], [O1], [E1], [T1], [A1]; returns the map
-- [ ] `rehydrate(text, map)` restores originals
-- [ ] Unit tests: round trip, same name gets same placeholder, no original value left in output for 10 fixtures
-- [ ] Ledger screen lists LedgerEntry rows with time, model id, regions, byte count and the exact redacted payload
+- [x] `Pseudonymiser` in RecalledCore: names and organisations via NLTagger, emails, phones, addresses via NSDataDetector, replaced with stable placeholders [P1], [O1], [E1], [T1], [A1]; returns the map
+- [x] `rehydrate(text, map)` restores originals
+- [x] Unit tests: round trip, same name gets same placeholder, no original value left in output for 10 fixtures
+- [x] Ledger screen lists LedgerEntry rows with time, model id, regions, byte count and the exact redacted payload
 
 ### Added by manager (2026-10-23)
-- [ ] Placeholders are numbered per type in order of first appearance and reused for repeats within one call; the returned map is placeholder to original
-- [ ] The Ledger screen is a SwiftUI view in `Recalled/` that takes `[LedgerEntry]` (sample data is fine; the SCX call is out of scope) and compiles on both `Recalled` and `RecalledMac`
+- [x] Placeholders are numbered per type in order of first appearance and reused for repeats within one call; the returned map is placeholder to original
+- [x] The Ledger screen is a SwiftUI view in `Recalled/` that takes `[LedgerEntry]` (sample data is fine; the SCX call is out of scope) and compiles on both `Recalled` and `RecalledMac`
 
 ## Windows mode
 The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code and tests carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `core-tests` and `app-build` must be green on `task/T12-pseudonymiser`.
@@ -52,3 +52,10 @@ SCX call.
   6. Manager shared-screen requirement: `LedgerView(entries: [LedgerEntry])` is in `Recalled/`, already included by both Recalled and RecalledMac in `project.yml`, and uses shared SwiftUI APIs. Both platform builds remain unverified locally.
 - Verify commands run and results: Attempted `swift test --package-path RecalledCore` and `xcodebuild -scheme Recalled -destination 'generic/platform=iOS Simulator' build`; both could not run because their commands are unavailable on Windows. No Swift tests or Xcode builds are claimed to pass. `git diff --check` passed; a separate whitespace scan included all three new Swift files and found no trailing whitespace.
 - Not done / risks / questions for the manager: Manager must push and require green `core-tests` and `app-build` on `task/T12-pseudonymiser` (the existing app-build workflow builds both iOS and macOS). Apple recognition is heuristic and can vary with OS/language; the real-detector fixtures need CI validation. Input containing a reserved placeholder such as `[P1]` throws `reservedPlaceholderInInput` to avoid an ambiguous round trip. Map storage and SCX/region enforcement remain outside this task; the app link has no fabricated sent requests.
+
+## Review (round 1)
+- Date: 2026-10-23 14:28 AEDT
+- Verdict: PASS
+- Evidence: core-tests run 39894985789 green (Test run with 102 tests in the package, 10 in PseudonymiserTests.swift, including tenFixturesRemoveOriginalsAndRoundTrip), app-build run 39894985815 green (Recalled iOS and RecalledMac both compile LedgerView).
+- Checked: NLTagger for names and organisations, NSDataDetector for emails (mailto links), phones and addresses; per-type numbering by first appearance, repeats reuse the token; map is placeholder to original; rehydrate is single pass and does not cascade; input that already contains placeholders throws. Ledger screen shows time, model id, regions, byte count and the full redacted payload; reachable from the placeholder screen via "What left my phone" (empty until T13 writes entries).
+- Owner check at the M4 gate: NLTagger quality on real names varies by OS model; confirm on device with demo data.

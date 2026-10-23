@@ -33,3 +33,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 14:20 AEDT | T04 | claude | merge | task/T04-resolvers merged to main, status done
 - 2026-10-23 14:20 AEDT | T12 | claude | dispatch | round 1 on task/T12-pseudonymiser (gate: core-tests and app-build CI)
 - 2026-10-23 14:25 AEDT | T12 | codex | dev-report r1 | Added local pseudonymiser, 10 test functions with 10 privacy fixtures, and shared ledger screen; committed beb7a1c; Swift/Xcode unavailable on Windows, core-tests and app-build CI pending
+- 2026-10-23 14:28 AEDT | T12 | claude | review r1 PASS | core-tests 39894985789 and app-build 39894985815 green
