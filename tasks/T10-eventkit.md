@@ -16,19 +16,19 @@ Real action: approved items become real calendar events.
 AGENTS.md; docs/SPEC.md: SPEC 7.5 items 4 and 5; 8 (A6, A12)
 
 ## Acceptance criteria
-- [ ] `EventKitCalendarStore: CalendarStore` with full-access request flow and clear denied state
-- [ ] Conflicts from ConflictDetector shown on Today and in Detail using the next 14 days of events
-- [ ] 'Add to Calendar' on a confirmed item shows the exact event (title, time, location) before writing; writes; stores the event identifier and an ActionReceipt
-- [ ] Rechecks for overlap immediately before writing
-- [ ] A reschedule of an item that already has an event updates that event, not a new one
+- [x] `EventKitCalendarStore: CalendarStore` with full-access request flow and clear denied state
+- [x] Conflicts from ConflictDetector shown on Today and in Detail using the next 14 days of events
+- [x] 'Add to Calendar' on a confirmed item shows the exact event (title, time, location) before writing; writes; stores the event identifier and an ActionReceipt
+- [x] Rechecks for overlap immediately before writing
+- [x] A reschedule of an item that already has an event updates that event, not a new one
 
 ### Added by manager (2026-10-23)
-- [ ] `CalendarStore` in RecalledCore gains `update(_ id: String, with draft: EventDraft) async throws`; `InMemoryCalendarStore` implements it, with unit tests (update keeps the id, unknown id throws)
-- [ ] `EventDraft` and `CalendarEvent` gain `location: String?` (default nil, Codable stays backward compatible: missing key decodes as nil, with a test). The preview shows location only when present; Commitment has no location yet, so it is usually empty
-- [ ] Info.plist on both app targets has `NSCalendarsFullAccessUsageDescription`; RecalledMac entitlements add `com.apple.security.personal-information.calendars`
-- [ ] T07's InMemoryCalendarStore is replaced by `EventKitCalendarStore` in one place; a DEBUG-only switch keeps the in-memory store available for previews
-- [ ] Date-only deadlines are never written as timed events (A5); if the user adds one to the calendar it is an all-day event
-- [ ] Builds on both `Recalled` and `RecalledMac`
+- [x] `CalendarStore` in RecalledCore gains `update(_ id: String, with draft: EventDraft) async throws`; `InMemoryCalendarStore` implements it, with unit tests (update keeps the id, unknown id throws)
+- [x] `EventDraft` and `CalendarEvent` gain `location: String?` (default nil, Codable stays backward compatible: missing key decodes as nil, with a test). The preview shows location only when present; Commitment has no location yet, so it is usually empty
+- [x] Info.plist on both app targets has `NSCalendarsFullAccessUsageDescription`; RecalledMac entitlements add `com.apple.security.personal-information.calendars`
+- [x] T07's InMemoryCalendarStore is replaced by `EventKitCalendarStore` in one place; a DEBUG-only switch keeps the in-memory store available for previews
+- [x] Date-only deadlines are never written as timed events (A5); if the user adds one to the calendar it is an all-day event
+- [x] Builds on both `Recalled` and `RecalledMac`
 
 ## Windows mode
 The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `core-tests` and `app-build` must be green on `task/T10-eventkit`. Criteria that need a running app are reviewed as compile-checked and marked PENDING DEVICE; the manager adds them to the "Mac gate checklist" in docs/PLAN.md.
@@ -106,3 +106,11 @@ Required fixes:
   - `xcodebuild -scheme RecalledMac -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO build`: attempted; could not run, `xcodebuild` CommandNotFoundException.
   - `git diff --check`: passed. Static Core import scan found no FoundationModels, EventKit, UIKit or SwiftUI imports. Reviewed all six source/test diffs; no local compilation or runtime results are claimed.
 - Not done / risks / questions for the manager: Windows has no Swift toolchain or Xcode; neither was installed. The manager must push and obtain green `core-tests` and `app-build` on `task/T10-eventkit`, and run the PENDING DEVICE cases above. The round 1 external-write/local-receipt crash window and non-atomic overlap check remain. No protected documents, extraction logic, unrelated tasks, or merge were changed.
+
+## Review (round 2)
+- Date: 2026-10-23 17:06 AEDT
+- Verdict: PASS
+- Evidence: core-tests run 39909312713 green (193 tests), app-build run 39909312847 green on task/T10-eventkit.
+- Round 1 fixes verified: build fixed via AppStore.noteCalendarChanged(); updates keep Calendar location and notes when the draft has none; a deleted linked event is unlinked and returns a fresh create preview that still needs approval (no write, no receipt until approved); all-day drafts never overlap; all-day events are floating (timeZone nil) and built from date components in the user's calendar.
+- Known edge case, moved to T16 as a required item: CalendarAction.draft reads a date-only deadline's day in the commitment's source zone, but DateResolver stores date-only deadlines as midnight in the user's zone, so "due 14 October 2026 UTC" would land on 13 October. Read the components in the user's calendar instead.
+- PENDING DEVICE: moved to the Mac gate checklist (T10 rows).
