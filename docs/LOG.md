@@ -44,3 +44,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 15:04 AEDT | T05a | codex | dev-report r1 | Added extraction instructions, 20 benchmark fixtures and five Core tests; committed ed8b639; Swift/Xcode unavailable on Windows, core-tests and app-build CI pending
 - 2026-10-23 15:07 AEDT | T05a | claude | review r1 PASS | 117 tests green on core-tests 39898373541; app-build 39898373522 green (both apps bundle benchmark.json)
 - 2026-10-23 15:07 AEDT | T05a | claude | merge | task/T05a-instructions-benchmark merged to main, status done
+- 2026-10-23 15:07 AEDT | T07 | claude | dispatch | round 1 on task/T07-store-today (gate: app-build CI (core-tests if Core changes))
