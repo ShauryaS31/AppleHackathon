@@ -69,3 +69,6 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 16:40 AEDT | T04c | codex | dev-report r1 | 0ebc720: timezone suffix resolution and source-zone persistence; seven benchmark fixtures updated, one still marked Review; Swift unavailable on Windows, CI pending
 - 2026-10-23 16:43 AEDT | T04c | claude | review r1 PASS | 175 tests green on core-tests 39907084666; app-build green; ported fixtures in Review for a date: 7 to 0
 - 2026-10-23 16:43 AEDT | T04c | claude | merge | task/T04c-timezone-suffixes merged to main, status done
+- 2026-10-23 16:43 AEDT | T07b | claude | dispatch | round 1 on task/T07b-no-date-section (gate: app-build and core-tests CI)
+- 2026-10-23 16:45 AEDT | T07b | codex | dev-report r1 | 254a820: added confirmed No date agenda section, pure filter with five tests and undated demo seed; Swift/Xcode unavailable on Windows, CI and device checks pending
+- 2026-10-23 16:49 AEDT | T07b | claude | review r1 PASS | core-tests 39907633419 and app-build 39907633400 green

@@ -42,25 +42,30 @@ enum Seed {
         Item(title: "Book club", sender: "Email · Book club", due: "tomorrow at 7pm",
              excerpt: "Book club is tomorrow at 7pm in the library."),
         Item(title: "Lunch with Priya", sender: "Slack · Priya", due: "sometime soon",
-             excerpt: "Let's have lunch sometime soon.", status: .needsReview)
+             excerpt: "Let's have lunch sometime soon.", status: .needsReview),
+        Item(title: "Send revised proposal", sender: "Email · Sam", due: "",
+             excerpt: "Please send the revised proposal. We have not agreed a deadline.",
+             kind: .commitment)
     ]
 
     @MainActor
     static func insert(into context: ModelContext, now: Date) {
         for (index, item) in items.enumerated() {
-            let resolution = DateResolver.resolve(dueText: item.due, sentAt: now, timeZone: .current)
             var commitment = Commitment(
                 title: item.title, kind: item.kind, status: item.status,
                 actor: item.sender, dueText: item.due, timezone: TimeZone.current.identifier
             )
-            switch resolution {
-            case .exact(let interval):
-                commitment.dueStart = interval.start
-                commitment.dueEnd = interval.end
-            case .dateOnly(let date):
-                commitment.dueStart = date
-            case .ambiguous:
-                commitment.status = .needsReview
+            // No date supplied is different from an ambiguous date to review.
+            if !item.due.isEmpty {
+                switch DateResolver.resolve(dueText: item.due, sentAt: now, timeZone: .current) {
+                case .exact(let interval):
+                    commitment.dueStart = interval.start
+                    commitment.dueEnd = interval.end
+                case .dateOnly(let date):
+                    commitment.dueStart = date
+                case .ambiguous:
+                    commitment.status = .needsReview
+                }
             }
             let messageID = "demo-\(index + 1)"
             context.insert(StoredCommitment(commitment))
