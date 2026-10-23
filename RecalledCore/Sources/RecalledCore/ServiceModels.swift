@@ -72,11 +72,13 @@ public struct ExtractionDTO: Codable, Sendable, Equatable {
 
 public struct ExtractionResult: Codable, Sendable, Equatable {
     public enum Relevance: String, Codable, Sendable, Equatable, CaseIterable {
-        case none, uncertain, relevant
+        case irrelevant = "none"
+        case uncertain, relevant
     }
 
     public enum Change: String, Codable, Sendable, Equatable, CaseIterable {
-        case new, updated, rescheduled, cancelled, completed, none
+        case new, updated, rescheduled, cancelled, completed
+        case noChange = "none"
     }
 
     public var relevance: Relevance
@@ -90,12 +92,37 @@ public struct ExtractionResult: Codable, Sendable, Equatable {
     }
 }
 
-/// Callers must pseudonymise titles and instructions before constructing a request.
+/// A planner-facing item with a short ref and no internal UUID. Callers must
+/// pseudonymise title and dueText before construction; dates are resolved locally.
+public struct PlanItem: Codable, Sendable, Equatable {
+    public var ref: String
+    public var title: String
+    public var kind: Commitment.Kind
+    public var status: Commitment.Status
+    public var dueText: String
+    public var dueStart: Date?
+    public var dueEnd: Date?
+
+    public init(
+        ref: String, title: String, kind: Commitment.Kind, status: Commitment.Status,
+        dueText: String, dueStart: Date? = nil, dueEnd: Date? = nil
+    ) {
+        self.ref = ref
+        self.title = title
+        self.kind = kind
+        self.status = status
+        self.dueText = dueText
+        self.dueStart = dueStart
+        self.dueEnd = dueEnd
+    }
+}
+
+/// Callers must pseudonymise item text and instructions before constructing a request.
 public struct PseudonymisedPlanRequest: Codable, Sendable, Equatable {
-    public var items: [ItemRef]
+    public var items: [PlanItem]
     public var instructions: String
 
-    public init(items: [ItemRef], instructions: String) {
+    public init(items: [PlanItem], instructions: String) {
         self.items = items
         self.instructions = instructions
     }

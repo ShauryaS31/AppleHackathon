@@ -31,6 +31,19 @@ public struct SourceMessage: Codable, Sendable, Equatable {
         self.labels = labels
         self.headers = headers
     }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        source = try container.decode(Source.self, forKey: .source)
+        sender = try container.decode(String.self, forKey: .sender)
+        sentAt = try container.decode(Date.self, forKey: .sentAt)
+        subject = try container.decode(String.self, forKey: .subject)
+        body = try container.decode(String.self, forKey: .body)
+        threadKey = try container.decodeIfPresent(String.self, forKey: .threadKey)
+        labels = try container.decodeIfPresent([String].self, forKey: .labels) ?? []
+        headers = try container.decodeIfPresent([String: String].self, forKey: .headers) ?? [:]
+    }
 }
 
 public struct Commitment: Codable, Sendable, Equatable {
@@ -93,12 +106,33 @@ public struct Evidence: Codable, Sendable, Equatable {
 }
 
 public struct ReviewItem: Codable, Sendable, Equatable {
-    public var commitmentId: UUID
+    public let commitmentId: UUID?
+    public let sourceMessageId: String?
     public var reason: String
 
-    public init(commitmentId: UUID, reason: String) {
+    /// Returns nil when neither link is supplied. Links are immutable so a valid
+    /// review cannot later lose both; decoding enforces the same requirement.
+    public init?(commitmentId: UUID? = nil, sourceMessageId: String? = nil, reason: String) {
+        guard commitmentId != nil || sourceMessageId != nil else { return nil }
         self.commitmentId = commitmentId
+        self.sourceMessageId = sourceMessageId
         self.reason = reason
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let commitmentId = try container.decodeIfPresent(UUID.self, forKey: .commitmentId)
+        let sourceMessageId = try container.decodeIfPresent(String.self, forKey: .sourceMessageId)
+        let reason = try container.decode(String.self, forKey: .reason)
+        guard let item = ReviewItem(
+            commitmentId: commitmentId, sourceMessageId: sourceMessageId, reason: reason
+        ) else {
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath,
+                debugDescription: "ReviewItem requires a commitmentId or sourceMessageId."
+            ))
+        }
+        self = item
     }
 }
 

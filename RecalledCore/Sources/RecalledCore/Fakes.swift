@@ -1,26 +1,36 @@
 import Foundation
 
+public enum FakeServiceError: Error, Codable, Sendable, Equatable {
+    case scripted(String)
+}
+
 /// Scripts by message id, so concurrent extraction order does not affect results.
 public struct FakeExtractor: CommitmentExtractor, Codable, Sendable, Equatable {
     public var resultsByMessageID: [String: ExtractionResult]
     public var defaultResult: ExtractionResult
+    /// A scripted error takes precedence over a result for the same message id.
+    public var errorsByMessageID: [String: FakeServiceError]
 
     public init(
         resultsByMessageID: [String: ExtractionResult] = [:],
-        defaultResult: ExtractionResult = ExtractionResult(relevance: .none, change: .none, items: [])
+        defaultResult: ExtractionResult = ExtractionResult(relevance: .irrelevant, change: .noChange, items: []),
+        errorsByMessageID: [String: FakeServiceError] = [:]
     ) {
         self.resultsByMessageID = resultsByMessageID
         self.defaultResult = defaultResult
+        self.errorsByMessageID = errorsByMessageID
     }
 
     public func extract(_ msg: SourceMessage, openItems: [ItemRef]) async throws -> ExtractionResult {
-        resultsByMessageID[msg.id] ?? defaultResult
+        if let error = errorsByMessageID[msg.id] { throw error }
+        return resultsByMessageID[msg.id] ?? defaultResult
     }
 }
 
 /// Actor isolation protects mutable event storage across concurrent protocol calls.
 public actor InMemoryCalendarStore: CalendarStore {
     private var storedEvents: [CalendarEvent]
+    private var nextID = 1
 
     public init(events: [CalendarEvent] = []) {
         self.storedEvents = events
@@ -35,7 +45,12 @@ public actor InMemoryCalendarStore: CalendarStore {
     }
 
     public func create(_ draft: EventDraft) async throws -> String {
-        let id = UUID().uuidString
+        // Each store starts at fake-1 and skips any ids already present in seed data.
+        while storedEvents.contains(where: { $0.id == "fake-\(nextID)" }) {
+            nextID += 1
+        }
+        let id = "fake-\(nextID)"
+        nextID += 1
         storedEvents.append(CalendarEvent(
             id: id, title: draft.title, start: draft.start, end: draft.end,
             timezone: draft.timezone, isAllDay: draft.isAllDay, notes: draft.notes
@@ -47,17 +62,21 @@ public actor InMemoryCalendarStore: CalendarStore {
 public struct FakePlanningModel: PlanningModel, Codable, Sendable, Equatable {
     public var regions: [String]
     public var response: PlanResponse
+    public var error: FakeServiceError?
 
     public init(
         regions: [String] = [],
-        response: PlanResponse = PlanResponse(summary: "", orderedRefs: [])
+        response: PlanResponse = PlanResponse(summary: "", orderedRefs: []),
+        error: FakeServiceError? = nil
     ) {
         self.regions = regions
         self.response = response
+        self.error = error
     }
 
     public func plan(_ request: PseudonymisedPlanRequest) async throws -> PlanResponse {
-        response
+        if let error { throw error }
+        return response
     }
 }
 

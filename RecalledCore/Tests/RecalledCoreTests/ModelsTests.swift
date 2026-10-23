@@ -11,6 +11,60 @@ private func expectRoundTrip<T: Codable & Sendable & Equatable>(_ value: T) thro
 
 private let timestamp = Date(timeIntervalSince1970: 1_792_800_000)
 
+@Test func sourceMessageDecodesMissingOrNullMetadata() throws {
+    for metadata in ["", ", \"labels\": null, \"headers\": null"] {
+        let json = """
+        {"id":"seed-1","source":"seed","sender":"Me","sentAt":0,
+         "subject":"","body":"Send the report"\(metadata)}
+        """
+        let message = try JSONDecoder().decode(SourceMessage.self, from: Data(json.utf8))
+        #expect(message.id == "seed-1")
+        #expect(message.sentAt == Date(timeIntervalSinceReferenceDate: 0))
+        #expect(message.labels.isEmpty)
+        #expect(message.headers.isEmpty)
+        #expect(message.threadKey == nil)
+        try expectRoundTrip(message)
+    }
+}
+
+@Test func reviewItemSupportsMessageAndCombinedLinksAndRejectsMissingLinks() throws {
+    let messageReview = try #require(ReviewItem(sourceMessageId: "source-1", reason: "Input too long"))
+    #expect(messageReview.commitmentId == nil)
+    #expect(messageReview.sourceMessageId == "source-1")
+    #expect(messageReview.reason == "Input too long")
+    try expectRoundTrip(messageReview)
+    let id = UUID()
+    let combined = try #require(ReviewItem(commitmentId: id, sourceMessageId: "source-1", reason: "Check date"))
+    #expect(combined.commitmentId == id)
+    #expect(combined.sourceMessageId == "source-1")
+    try expectRoundTrip(combined)
+    #expect(ReviewItem(reason: "No links") == nil)
+    for json in [
+        "{\"reason\":\"No links\"}",
+        "{\"commitmentId\":null,\"sourceMessageId\":null,\"reason\":\"No links\"}"
+    ] {
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(ReviewItem.self, from: Data(json.utf8))
+        }
+    }
+}
+
+@Test func extractionNoneWireValuesDecodeWithoutOptionalAmbiguity() throws {
+    let wireValue = Data("\"none\"".utf8)
+    let relevance = try JSONDecoder().decode(ExtractionResult.Relevance.self, from: wireValue)
+    let change = try JSONDecoder().decode(ExtractionResult.Change.self, from: wireValue)
+    #expect(relevance == .irrelevant)
+    #expect(change == .noChange)
+    #expect(try JSONEncoder().encode(relevance) == wireValue)
+    #expect(try JSONEncoder().encode(change) == wireValue)
+    let result: ExtractionResult? = ExtractionResult(relevance: relevance, change: change, items: [])
+    #expect(result?.relevance == .irrelevant)
+    #expect(result?.change == .noChange)
+    let missing: ExtractionResult? = nil
+    #expect(missing?.relevance != .irrelevant)
+    #expect(missing?.change != .noChange)
+}
+
 @Test func sourceMessagePreservesMetadataAndRoundTrips() throws {
     let message = SourceMessage(
         id: "gmail-1", source: .gmail, sender: "Alex", sentAt: timestamp,
@@ -111,8 +165,9 @@ private let timestamp = Date(timeIntervalSince1970: 1_792_800_000)
     #expect(evidence.capturedAt == timestamp)
     try expectRoundTrip(evidence)
 
-    let review = ReviewItem(commitmentId: id, reason: "Ambiguous time")
+    let review = try #require(ReviewItem(commitmentId: id, reason: "Ambiguous time"))
     #expect(review.commitmentId == id)
+    #expect(review.sourceMessageId == nil)
     #expect(review.reason == "Ambiguous time")
     try expectRoundTrip(review)
 }
@@ -150,10 +205,34 @@ private let timestamp = Date(timeIntervalSince1970: 1_792_800_000)
     #expect(item.status == .tentative)
     try expectRoundTrip(item)
 
-    let request = PseudonymisedPlanRequest(items: [item], instructions: "Prioritise Task A")
-    #expect(request.items == [item])
+    let planItem = PlanItem(
+        ref: "t3", title: "Task for [P1]", kind: .commitment, status: .tentative,
+        dueText: "tomorrow", dueStart: timestamp, dueEnd: timestamp.addingTimeInterval(60)
+    )
+    #expect(planItem.ref == "t3")
+    #expect(planItem.title == "Task for [P1]")
+    #expect(planItem.kind == .commitment)
+    #expect(planItem.status == .tentative)
+    #expect(planItem.dueText == "tomorrow")
+    #expect(planItem.dueStart == timestamp)
+    #expect(planItem.dueEnd == timestamp.addingTimeInterval(60))
+    try expectRoundTrip(planItem)
+    let unresolved = PlanItem(ref: "t1", title: "Task", kind: .deadline, status: .candidate, dueText: "")
+    #expect(unresolved.dueStart == nil)
+    #expect(unresolved.dueEnd == nil)
+    try expectRoundTrip(unresolved)
+
+    let request = PseudonymisedPlanRequest(items: [planItem], instructions: "Prioritise Task A")
+    #expect(request.items == [planItem])
     #expect(request.instructions == "Prioritise Task A")
     try expectRoundTrip(request)
+    let payload = try #require(
+        JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any]
+    )
+    let payloadItems = try #require(payload["items"] as? [[String: Any]])
+    let payloadItem = try #require(payloadItems.first)
+    #expect(Set(payloadItem.keys) == Set(["ref", "title", "kind", "status", "dueText", "dueStart", "dueEnd"]))
+    #expect(payloadItem["title"] as? String == "Task for [P1]")
 
     let response = PlanResponse(summary: "Start with t3", orderedRefs: ["t3"])
     #expect(response.summary == "Start with t3")
@@ -181,7 +260,7 @@ private let timestamp = Date(timeIntervalSince1970: 1_792_800_000)
     #expect(decoded == result)
     try expectRoundTrip(item)
     try expectRoundTrip(result)
-    try expectRoundTrip(ExtractionResult(relevance: .none, change: .none, items: []))
+    try expectRoundTrip(ExtractionResult(relevance: .irrelevant, change: .noChange, items: []))
     try expectRoundTrip(ExtractionDTO(
         title: "Call", kind: .commitment, tentative: false, dueText: "",
         actor: "me", evidence: "I will call you.", updatesRef: ""
