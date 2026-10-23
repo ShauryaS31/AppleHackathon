@@ -21,6 +21,9 @@ AGENTS.md; docs/SPEC.md: SPEC 5
 - [ ] Every network step has a visible timeout and a graceful message
 - [ ] Owner: full 5-minute run on device twice, timings recorded in LOG; fallback video recorded
 
+### Manager note (2026-10-23, from T04 review)
+- [ ] DateResolver also resolves: leading 'by', 'on', 'this'; weekday plus date ('Sat 25 Oct'); a comma between date and time; 'tonight' (19:00) and 'noon' (12:00). Each with a Sydney-time-zone unit test. Only if demo messages use these forms.
+
 ## Verify
 ```
 xcodebuild -scheme Recalled -destination 'generic/platform=iOS Simulator' build
