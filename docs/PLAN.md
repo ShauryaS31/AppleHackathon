@@ -61,6 +61,10 @@ Runtime checks the agents cannot do on Windows. Each review marks them "PENDING 
 | T07 | Forget all, then relaunch: everything empty; unprovisioned RecalledMac falls back to the default store and logs once | [ ] |
 | T08 | Review tab badge count matches the queue; each action (Confirm, Edit, Dismiss, Mark as same, Create) removes the row and updates Today without relaunch | [ ] |
 | T08 | Edit date picker, date-only toggle and No date option work on iPhone and Mac | [ ] |
+| T09 | Share WhatsApp text in airplane mode: item lands in Review with the extractor-not-wired reason and a bounded excerpt (A1, A10); repeat after T05b with the real model | [ ] |
+| T09 | Share from Messages, Slack and Mail is accepted; one Safari URL accepted; two URLs or an image do not activate the extension | [ ] |
+| T09 | Paste message on iPhone and RecalledMac (also with an empty clipboard); data-protection entitlement signs on device | [ ] |
+| T09 | Kill the app mid-import, relaunch: file kept and imported once; Forget all removes pending Inbox files | [ ] |
 
 ## Owner-only work (not for agents)
 - Fri: hardware and accounts (T00), confirm prior-work rule with organisers, find team (iOS dev or designer).
