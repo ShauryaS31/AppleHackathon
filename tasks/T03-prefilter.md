@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | in_progress |
+| Status | done |
 | Milestone | M1 |
 | Window | Sat 24 Oct, 10:45 to 11:30 |
 | Depends on | T02 |
