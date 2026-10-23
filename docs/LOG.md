@@ -40,3 +40,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 14:55 AEDT | T04b | codex | dev-report r1 | Common date phrases and 10 new test functions committed as 6870bff; existing tests unchanged; Swift unavailable on Windows, core-tests CI pending
 - 2026-10-23 14:58 AEDT | T04b | claude | review r1 PASS | 112 tests green on core-tests 39897652689; app-build green
 - 2026-10-23 14:58 AEDT | T04b | claude | merge | task/T04b-date-phrases merged to main, status done
+- 2026-10-23 14:59 AEDT | T05a | claude | dispatch | round 1 on task/T05a-instructions-benchmark (gate: core-tests and app-build CI)
