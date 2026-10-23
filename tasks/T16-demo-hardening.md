@@ -23,6 +23,7 @@ AGENTS.md; docs/SPEC.md: SPEC 5
 
 ### Manager note (2026-10-23)
 The DateResolver phrasing item that was here moved to the required task T04b (owner decision).
+- [ ] (from T10 review) `CalendarAction.draft` builds an all-day deadline from the day of `dueStart` in the user's calendar, not the commitment's source zone; test: a date-only deadline with a UTC suffix resolved for an Australia/Sydney user stays on the stated day
 
 ## Verify
 ```

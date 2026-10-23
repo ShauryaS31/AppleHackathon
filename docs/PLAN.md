@@ -66,6 +66,11 @@ Runtime checks the agents cannot do on Windows. Each review marks them "PENDING 
 | T09 | Paste message on iPhone and RecalledMac (also with an empty clipboard); data-protection entitlement signs on device | [ ] |
 | T09 | Kill the app mid-import, relaunch: file kept and imported once; Forget all removes pending Inbox files | [ ] |
 | T07b | After Reset demo, Today shows a No date section with Send revised proposal below Today and Tomorrow; confirming a dateless review item makes it appear there | [ ] |
+| T10 | Calendar access: grant, deny (clear denied state), write-only upgrade, retry after Settings, on iPhone and Mac (entitlement works in the Mac sandbox) | [ ] |
+| T10 | A6: conflict with a real Calendar event shows on Today and Detail and refreshes on foreground; overlap added between preview and approve shows a refreshed preview | [ ] |
+| T10 | A12: Approve creates one real event (double tap safe), calendarEventId and receipt survive relaunch; Cancel writes nothing | [ ] |
+| T10 | A5: date-only deadline appears all-day on the correct date; reschedule moves the same event and keeps its location and notes; deleted linked event offers a new create preview | [ ] |
+| T10 | Debug build with RECALLED_DEMO_CALENDAR=1 uses the seeded in-memory calendar | [ ] |
 
 ## Owner-only work (not for agents)
 - Fri: hardware and accounts (T00), confirm prior-work rule with organisers, find team (iOS dev or designer).
