@@ -16,3 +16,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 13:48 AEDT | T01 | codex | dev-report r1 | iOS/macOS scaffold, Core placeholder and CI written; static checks passed, Apple toolchain checks pending; commit blocked by read-only .git sandbox
 - 2026-10-23 14:05 AEDT | T01 | claude | review r1 PASS | core-tests and app-build green on macos-26 (Xcode 26.6); launch check left for owner at M0 gate
 - 2026-10-23 14:06 AEDT | T01 | claude | merge | task/T01-scaffold merged to main, status done; CLAUDE.md dispatch updated: manager commits for Codex (sandbox .git is read-only)
+- 2026-10-23 13:52 AEDT | T02 | claude | dispatch | round 1 on task/T02-core-models (gate: core-tests CI)
