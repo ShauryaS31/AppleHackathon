@@ -14,9 +14,9 @@ Follow the loop in `docs/FACTORY.md` exactly. Summary:
    ```
    mkdir -p logs
    echo "=== Txx round n | $(date) ===" > logs/current.log
-   codex exec --model gpt-6-astra --sandbox workspace-write -C . "You are the developer. Read AGENTS.md, then do task Txx exactly as written in tasks/Txx-*.md. You are on branch task/Txx-slug. When finished, append your Dev Report to the task file, commit, append one line to docs/LOG.md, and stop." 2>&1 | tee -a logs/current.log logs/Txx-rN.log
+   codex exec --model gpt-6-astra --sandbox workspace-write -C . "You are the developer. Read AGENTS.md, then do task Txx exactly as written in tasks/Txx-*.md. You are on branch task/Txx-slug. When finished, append your Dev Report to the task file, commit, append one line to docs/LOG.md, and stop. If git cannot write because .git is read-only in your sandbox, leave everything uncommitted, say so in the Dev Report, and stop; the manager commits." 2>&1 | tee -a logs/current.log logs/Txx-rN.log
    ```
-   Check the exact flags once with `codex exec --help` (task T00) and update this line if they differ.
+   Flags checked on codex-cli 0.163.0 (T00). The workspace-write sandbox keeps .git read-only (`--add-dir .git` does not help), so the manager stages and commits each round with the developer's message, noting "committed by manager".
    The owner watches in the right-hand pane with `tail -f logs/current.log` (PowerShell: `Get-Content logs/current.log -Wait -Tail 50`).
    If the owner says "interactive mode", follow "Interactive mode" in docs/FACTORY.md instead.
 6. When it exits, review (use a subagent for diffs over about 300 lines). Run the verify commands yourself. Write `## Review (round n)` in the task file: verdict PASS or CHANGES, then numbered, specific fixes.

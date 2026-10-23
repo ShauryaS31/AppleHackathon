@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | in_progress |
+| Status | done |
 | Milestone | M0 |
 | Window | Fri 23 Oct, 18:30 to 21:00 |
 | Depends on | T00 |
