@@ -9,3 +9,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 13:27 AEDT | T00 | claude | dispatch | codex exec --help checked (codex-cli 0.163.0): --model, --sandbox workspace-write, -C all valid, CLAUDE.md command unchanged; dummy round trip dispatched on task/T00-factory-check
 - 2026-10-23 13:28 AEDT | T00 | codex | dev-report r1 | Dummy round trip: developer process can read the repo, write a file and commit
 - 2026-10-23 13:30 AEDT | T00 | claude | review r1 PASS | Manager items done: codex flags valid, dummy round trip committed b588bd4; owner items open
+- 2026-10-23 13:31 AEDT | T00 | claude | merge | task/T00-factory-check merged to main (--no-ff); T00 set blocked pending owner items (Xcode, device, signing, keys, organiser confirmation)

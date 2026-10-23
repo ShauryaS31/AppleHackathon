@@ -23,7 +23,7 @@ Parallel lanes on Saturday morning: T06 (SCX spike) runs in its own worktree alo
 
 | Task | Title | Milestone | Window | Depends on | Assignee | Status |
 |---|---|---|---|---|---|---|
-| [T00](../tasks/T00-factory-check.md) | Factory smoke test and accounts | M0 | Fri 23 Oct, 13:00 to 18:00 | - | owner + manager | in_progress |
+| [T00](../tasks/T00-factory-check.md) | Factory smoke test and accounts | M0 | Fri 23 Oct, 13:00 to 18:00 | - | owner + manager | blocked |
 | [T01](../tasks/T01-scaffold.md) | Repo scaffold: XcodeGen project, Core package, Share extension, CI | M0 | Fri 23 Oct, 18:30 to 21:00 | T00 | codex | todo |
 | [T02](../tasks/T02-core-models.md) | Core models, protocols and fakes | M1 | Sat 24 Oct, 10:00 to 10:45 | T01 | codex | todo |
 | [T03](../tasks/T03-prefilter.md) | Normaliser, quote and signature stripper, rules prefilter | M1 | Sat 24 Oct, 10:45 to 11:30 | T02 | codex | todo |

@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | in_progress |
+| Status | blocked |
 | Milestone | M0 |
 | Window | Fri 23 Oct, 13:00 to 18:00 |
 | Depends on | - |
