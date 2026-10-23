@@ -48,3 +48,4 @@ Events: dispatch, dev-report rN, review rN PASS/CHANGES, merge, blocked, gate PA
 - 2026-10-23 15:15 AEDT | T07 | codex | dev-report r1 | Persisted agenda, evidence detail, 15-item demo, Settings deletion and Ledger query committed as 31ab7a7; app-build CI and device checks pending (no Xcode on Windows)
 - 2026-10-23 15:17 AEDT | T07 | claude | review r1 CHANGES | CI green; 6 fixes: toolbar navigation, bounded evidence context (no full bodies), raw-string enums for predicates, message-level review fields, single ingest API, auto-retry store open
 - 2026-10-23 15:22 AEDT | T07 | claude | dev-report r2 | Logged for codex (sandbox could not write .git): round 1 fixes 1 to 6 addressed; EvidenceContext moved to RecalledCore with tests
+- 2026-10-23 15:25 AEDT | T07 | claude | review r2 PASS | core-tests 39899975476 and app-build 39899975400 green; runtime checks added to Mac gate checklist

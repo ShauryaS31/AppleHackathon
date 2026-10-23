@@ -16,20 +16,20 @@ The main screens with real persisted data.
 AGENTS.md; docs/SPEC.md: SPEC 5 steps 2 and 3; 7.3
 
 ## Acceptance criteria
-- [ ] SwiftData models for Commitment, Evidence, ReviewItem, LedgerEntry, ActionReceipt in the App Group container, Data Protection complete
-- [ ] No full message bodies persisted after processing (only excerpts)
-- [ ] `Seed` loads a demo dataset (12 to 20 items across email, WhatsApp, Slack styles, dates relative to today) from a menu action 'Reset demo'
-- [ ] Today view: agenda for today and tomorrow, source icon, tentative badge, conflict badge
-- [ ] Detail view: fields, evidence excerpt highlighted in its message context, source and captured time
-- [ ] Settings: 'Forget all' deletes everything
+- [x] SwiftData models for Commitment, Evidence, ReviewItem, LedgerEntry, ActionReceipt in the App Group container, Data Protection complete
+- [x] No full message bodies persisted after processing (only excerpts)
+- [x] `Seed` loads a demo dataset (12 to 20 items across email, WhatsApp, Slack styles, dates relative to today) from a menu action 'Reset demo'
+- [x] Today view: agenda for today and tomorrow, source icon, tentative badge, conflict badge
+- [x] Detail view: fields, evidence excerpt highlighted in its message context, source and captured time
+- [x] Settings: 'Forget all' deletes everything
 
 ### Added by manager (2026-10-23)
-- [ ] SwiftData `@Model` classes live in the app target and map to and from the RecalledCore structs (`Commitment`, `Evidence`, `ReviewItem`, `LedgerEntry`, `ActionReceipt`) through explicit functions; views work with the Core types or the models, never with raw message bodies
-- [ ] If the App Group container is unavailable (for example RecalledMac without a provisioned group), the store falls back to the default SwiftData location and logs it once; the app still works
-- [ ] The conflict badge uses `ConflictDetector` with events from an injected `CalendarStore`. In this task that is an `InMemoryCalendarStore` holding 2 to 3 seeded calendar events, one of which overlaps a seeded commitment; T10 swaps in EventKit
-- [ ] Seed items use `SourceMessage.Source` values `seed` and cover email, WhatsApp and Slack styles through `sender`, with at least one tentative item, one date-only deadline and one item in Review
-- [ ] The Ledger screen from T12 reads persisted `LedgerEntry` rows instead of an empty array
-- [ ] Builds on both `Recalled` and `RecalledMac`
+- [x] SwiftData `@Model` classes live in the app target and map to and from the RecalledCore structs (`Commitment`, `Evidence`, `ReviewItem`, `LedgerEntry`, `ActionReceipt`) through explicit functions; views work with the Core types or the models, never with raw message bodies
+- [x] If the App Group container is unavailable (for example RecalledMac without a provisioned group), the store falls back to the default SwiftData location and logs it once; the app still works
+- [x] The conflict badge uses `ConflictDetector` with events from an injected `CalendarStore`. In this task that is an `InMemoryCalendarStore` holding 2 to 3 seeded calendar events, one of which overlaps a seeded commitment; T10 swaps in EventKit
+- [x] Seed items use `SourceMessage.Source` values `seed` and cover email, WhatsApp and Slack styles through `sender`, with at least one tentative item, one date-only deadline and one item in Review
+- [x] The Ledger screen from T12 reads persisted `LedgerEntry` rows instead of an empty array
+- [x] Builds on both `Recalled` and `RecalledMac`
 
 ## Windows mode
 The developer runs on Windows with no Swift toolchain and no Xcode. Do not try to install them. Write the code carefully, state in the Dev Report that the verify commands could not be run locally, and do not claim they passed. The manager pushes the branch and the gate is GitHub Actions: `app-build` (and `core-tests` if RecalledCore changes) must be green on `task/T07-store-today`. Criteria that need a running app are reviewed as compile-checked and marked PENDING DEVICE; the manager adds them to the "Mac gate checklist" in docs/PLAN.md.
@@ -115,3 +115,10 @@ PENDING DEVICE (to the Mac gate checklist after PASS): store files carry NSFileP
   - PowerShell source audit: MenuButtonsAndDestinations, SharedContextRule, RawEnumFields, ReviewMetadata, IngestOneSaveAndRollback, AutomaticRetry, FivePureSwiftTests, and NoStoredBodyProperty all True. These checks inspect source and do not execute Swift, SwiftData, or UI behavior.
 - Not done / risks / questions for the manager: require fresh green `app-build` for both apps and `core-tests` on this branch; round 1 CI does not validate these edits. Existing PENDING DEVICE items remain, plus message-only review display, same-ID ingestion insert/update/retry (including repeated IDs within one batch and save-failure rollback), raw-string query filtering, and failed-open recovery on scene activation. This changes the development schema before data installation as requested; no migration of round 1 development stores is provided. T08/T09 callers should use ingest and preserve evidence/review row UUIDs. Protected project documents were not edited.
 - Commit/log outcome: `git diff --check` and `git diff --cached --check` passed, and staging succeeded. `git commit -m "T07: Address store and Today review fixes"` failed (exit 1): `fatal: Unable to create 'C:/Users/User/Desktop/projects/AppleHackathon/.git/index.lock': Permission denied`. No commit was created. All changes remain uncommitted; this final report update is unstaged. Per the user's explicit instruction for read-only Git failures, stopped here without appending the post-commit LOG line. The manager must stage the final report, commit, and append the LOG entry.
+
+## Review (round 2)
+- Date: 2026-10-23 15:25 AEDT
+- Verdict: PASS
+- Evidence: core-tests run 39899975476 (includes new EvidenceContextTests) and app-build run 39899975400 green on task/T07-store-today.
+- All six round 1 fixes verified in the diff: Buttons plus navigationDestination for Ledger and Settings; EvidenceContext in RecalledCore (40 characters per side, word boundary, none when the body is shorter than excerpt + 80), used for seed and review previews; statusRaw/kindRaw/actionRaw with computed enums and a #Predicate on Today; message-level review rows carry sender, bounded excerpt, createdAt; AppStore.ingest upserts in one save with rollback; store open retries when the scene becomes active.
+- PENDING DEVICE: moved to the Mac gate checklist in docs/PLAN.md (T07 rows).
